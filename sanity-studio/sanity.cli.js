@@ -5,5 +5,6 @@ export default defineCliConfig({
     projectId: 'f9j6xr69',
     dataset: 'production'
   },
-  studioHost: 'church-web-kutaisi'
+  // ადმინ პანელის მისამართი: https://efckutaisi.sanity.studio
+  studioHost: 'efckutaisi'
 })
