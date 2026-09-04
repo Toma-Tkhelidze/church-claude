@@ -87,19 +87,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const dropdownLinks = navMenu.querySelectorAll('.has-dropdown > a');
         dropdownLinks.forEach(link => {
             link.addEventListener('click', (e) => {
+                // "#" ლინკები არასდროს უნდა გადახტნენ გვერდის თავში (დესკტოპზეც)
+                if ((link.getAttribute('href') || '').trim() === '#') {
+                    e.preventDefault();
+                }
+
                 if (window.innerWidth <= 1307) {
-                    e.preventDefault(); // არ გადავიდეს ლინკზე
                     const parentLi = link.parentElement;
 
                     // სხვა გახსნილი dropdown-ების დაკეტვა
                     navMenu.querySelectorAll('.has-dropdown').forEach(item => {
                         if (item !== parentLi) {
                             item.classList.remove('dropdown-open');
+                            const otherLink = item.querySelector(':scope > a');
+                            if (otherLink) otherLink.setAttribute('aria-expanded', 'false');
                         }
                     });
 
                     // მიმდინარე მენიუს გადართვა
-                    parentLi.classList.toggle('dropdown-open');
+                    const isDropdownOpen = parentLi.classList.toggle('dropdown-open');
+                    link.setAttribute('aria-expanded', isDropdownOpen);
                 }
             });
         });

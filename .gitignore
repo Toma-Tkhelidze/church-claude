@@ -5,3 +5,4 @@ sanity-studio/.sanity/
 .DS_Store
 Thumbs.db
 *.log
+scratch/

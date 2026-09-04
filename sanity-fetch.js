@@ -135,9 +135,24 @@ function updatePageContent() {
                       loop 
                       muted 
                       playsinline 
+                      preload="metadata" 
                       style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; pointer-events: none;">
                   </video>
                 `;
+
+                // Some browsers (notably iOS Safari) ignore the autoplay
+                // attribute on media inserted via innerHTML, so start it
+                // explicitly. The viewport observer in script.js still
+                // decides whether it keeps playing.
+                const injectedVideo = containerEl.querySelector('video');
+                if (injectedVideo) {
+                  injectedVideo.muted = true;
+                  injectedVideo.playsInline = true;
+                  const playAttempt = injectedVideo.play();
+                  if (playAttempt && typeof playAttempt.catch === 'function') {
+                    playAttempt.catch(() => { /* blocked by autoplay policy or paused while off-screen */ });
+                  }
+                }
               } else {
                 const videoDetails = getVideoDetails(videoUrl);
                 if (videoDetails) {
