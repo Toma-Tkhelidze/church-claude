@@ -574,3 +574,110 @@ window.unlockBodyScroll = function() {
     isScrollLocked = false;
 };
 
+
+
+// ──────────────────────────────────────────────
+// 9. მომდევნო მსახურების ამთვლელი (მისასალმებელი ბანერის გვერდით)
+// ──────────────────────────────────────────────
+(function () {
+    const panel = document.getElementById('nextService');
+    if (!panel) return;
+
+    // საქართველოში ზაფხულის დროზე გადასვლა არ ხდება, ამიტომ მუდმივი +4.
+    // ასე ამთვლელი სწორია სხვა დროის სარტყელიდან ნახვისასაც.
+    const TZ = 4;
+
+    const DAYS = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
+
+    const SERVICES = [
+        { day: 0, hour: 11, minute: 0, duration: 120, title: 'საკვირაო ღვთისმსახურება', href: 'pages/new-here.html' },
+        { day: 6, hour: 16, minute: 0, duration: 90,  title: 'ახალგაზრდული მსახურება', href: 'pages/youth.html' },
+        { day: 3, hour: 19, minute: 0, duration: 90,  title: 'საოჯახო ჯგუფები', href: 'pages/family-groups.html' }
+    ];
+
+    const eyebrow = panel.querySelector('.ns-eyebrow');
+    const titleLink = panel.querySelector('.ns-title-link');
+    const titleText = panel.querySelector('.ns-title-text');
+    const when = panel.querySelector('.ns-when');
+    const unit = key => panel.querySelector('[data-u="' + key + '"]');
+    const pad = n => String(n).padStart(2, '0');
+
+    // მოცემული მსახურების უახლოესი ჩატარების მომენტი (UTC მილიწამებში).
+    function occurrence(svc, from) {
+        // "shifted" დრო: UTC ველები ტოლია ქუთაისის ლოკალური დროისა.
+        const shifted = new Date(from + TZ * 3600e3);
+        const delta = (svc.day - shifted.getUTCDay() + 7) % 7;
+        return Date.UTC(
+            shifted.getUTCFullYear(),
+            shifted.getUTCMonth(),
+            shifted.getUTCDate() + delta,
+            svc.hour, svc.minute, 0
+        ) - TZ * 3600e3;
+    }
+
+    function stateOf(svc, now) {
+        const span = svc.duration * 60e3;
+        let start = occurrence(svc, now);
+        if (now >= start && now < start + span) {
+            return { start: start, live: true, endsAt: start + span };
+        }
+        if (start <= now) start += 7 * 24 * 3600e3;
+        return { start: start, live: false, endsAt: start + span };
+    }
+
+    function nextService(now) {
+        let best = null;
+        SERVICES.forEach(svc => {
+            const state = stateOf(svc, now);
+            const rank = state.live ? -1 : state.start;
+            if (!best || rank < best.rank) best = { svc: svc, state: state, rank: rank };
+        });
+        return best;
+    }
+
+    function paint() {
+        const now = Date.now();
+        const best = nextService(now);
+        if (!best) return;
+
+        titleText.textContent = best.svc.title;
+        if (best.svc.href) titleLink.setAttribute('href', best.svc.href);
+
+        if (best.state.live) {
+            panel.classList.add('is-live');
+            eyebrow.innerHTML = '<span class="ns-live-dot" aria-hidden="true"></span>ახლა მიმდინარეობს';
+            when.textContent = 'დასრულდება ' +
+                new Date(best.state.endsAt + TZ * 3600e3).toISOString().substr(11, 5) + '-ზე';
+            return;
+        }
+
+        panel.classList.remove('is-live');
+        eyebrow.textContent = 'მომდევნო მსახურება';
+        when.textContent = DAYS[best.svc.day] + ' ' + pad(best.svc.hour) + ':' + pad(best.svc.minute);
+
+        let left = Math.max(0, best.state.start - now);
+        const d = Math.floor(left / 86400e3); left -= d * 86400e3;
+        const h = Math.floor(left / 3600e3);  left -= h * 3600e3;
+        const m = Math.floor(left / 60e3);    left -= m * 60e3;
+
+        unit('d').textContent = d;
+        unit('h').textContent = pad(h);
+        unit('m').textContent = pad(m);
+        unit('s').textContent = pad(Math.floor(left / 1000));
+    }
+
+    paint();
+    setInterval(paint, 1000);
+
+    // პანელი ბანერთან ერთად ჩნდება — ბანერის კლასს ვადევნებთ თვალს,
+    // რომ გამოჩენის ლოგიკა ერთ ადგილას დარჩეს.
+    const banner = document.querySelector('.welcome-banner.floating-banner');
+    if (!banner) {
+        panel.classList.add('is-revealed');
+        return;
+    }
+
+    const sync = () => panel.classList.toggle('is-revealed', banner.classList.contains('banner-visible'));
+    sync();
+    new MutationObserver(sync).observe(banner, { attributes: true, attributeFilter: ['class'] });
+})();

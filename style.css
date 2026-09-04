@@ -2463,3 +2463,300 @@ h2 {
     opacity: 1;
     transform: translateY(0);
 }
+
+/* ==========================================================================
+   ორი ბანერი: მისასალმებელი + მომდევნო მსახურება
+
+   ორივე დამოუკიდებელი ბანერია და გვერდის სიგანეს თანაბრად იყოფს.
+   ამთვლელი მისასალმებელი ბანერის დიზაინს იმეორებს — იგივე რადიუსი,
+   ჩარჩო, ბლური, ჩრდილი, პედინგი და ტიპოგრაფიის მასშტაბი — მხოლოდ
+   ფერებით განსხვავდება: ოქროსფერის ნაცვლად მუქი.
+
+   ლიფტი (უარყოფითი მარჯინები, რითაც ბანერი hero-ს ეფარებოდა) მთლიან
+   რიგზე გადადის, თავად ბანერი კი რიგის შიგნით მარჯინების გარეშე რჩება.
+   ========================================================================== */
+.welcome-row {
+    width: 100%;
+    max-width: none;
+    margin: -60px 0 -40px;
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+    padding: 0 clamp(16px, 3vw, 40px);
+    box-sizing: border-box;
+}
+
+.welcome-row > .welcome-banner.floating-banner {
+    max-width: none;
+    margin: 0;
+    border-radius: var(--radius-lg);
+    padding: 36px clamp(26px, 3vw, 52px);
+}
+
+/* ნახევარ სიგანეზე ტექსტი საათებს ზემოდან ადგება, გვერდით აღარ ეტევა */
+.welcome-row .welcome-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+/* ნახევარ სიგანეზე საათები ორ რიგად იშლებოდა და ბანერს ზედმეტ
+   სიმაღლეს აძლევდა — გრიდი აიძულებს სამ თანაბარ სვეტს */
+@media (min-width: 992px) {
+    .welcome-row .schedule-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    /* უფრო მჭიდრო ტექსტური ბლოკი და უფრო კომპაქტური საათები */
+    .welcome-row .welcome-text-block .subtitle { margin-bottom: 4px; }
+    .welcome-row .welcome-text-block h2 {
+        font-size: clamp(1.6rem, 2.2vw, 2rem);
+        margin-bottom: 10px;
+    }
+    .welcome-row .welcome-text-block p:last-child { margin-bottom: 0; }
+
+    .welcome-row .clock-wrap {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 4px;
+    }
+
+    .welcome-row .next-service .ns-title { font-size: clamp(1.6rem, 2.2vw, 2rem); }
+
+/* სათაური ბმულია — შესაბამისი მსახურების გვერდზე გადადის (მისამართი script.js-შია) */
+.next-service .ns-title-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.3s, gap 0.3s;
+}
+
+.next-service .ns-title-link:hover {
+    color: var(--gold);
+    gap: 18px;
+}
+
+.next-service .ns-title-arrow {
+    font-size: 0.6em;
+    color: var(--gold);
+    opacity: 0.75;
+    transition: opacity 0.3s;
+}
+
+.next-service .ns-title-link:hover .ns-title-arrow {
+    opacity: 1;
+}
+}
+
+/* ── მეორე ბანერი: მომდევნო მსახურება ──────────────────────────────── */
+.next-service {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+
+    /* იგივე ფენა, რაც მისასალმებელ ბანერს — მხოლოდ ფერი სხვაა */
+    background: rgba(17, 17, 17, 0.94);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 36px clamp(26px, 3vw, 52px);
+    color: var(--white);
+
+    font-family: 'FiraGoBold', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
+    font-feature-settings: "case" on;
+
+    /* ბანერის მსგავსად, სქროლზე ჩნდება */
+    opacity: 0;
+    transform: translateY(40px);
+    pointer-events: none;
+    transition:
+        opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.next-service.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* ზედა წარწერა — ბანერის .subtitle-ის რიტმი, ოქროს აქცენტით */
+.ns-eyebrow {
+    display: block;
+    font-family: 'FiraGOMediumItalic', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 12px;
+}
+
+/* სათაური — ბანერის h2-ის მასშტაბი და ფონტი */
+.next-service .ns-title {
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    margin: 0 0 20px;
+    font-weight: 700;
+    color: var(--white);
+    font-family: 'FiraGoBold', sans-serif !important;
+    line-height: 1.2;
+}
+
+/* აღწერითი ხაზი — ბანერის p-ის ფონტი და ზომა */
+.next-service .ns-when {
+    font-size: 1rem;
+    margin: 0 0 30px;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'BPGglaho', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif !important;
+}
+
+.ns-count {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 26px 0;
+    border-top: 1px solid rgba(170, 149, 79, 0.35);
+    border-bottom: 1px solid rgba(170, 149, 79, 0.35);
+}
+
+.ns-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 2.7ch;
+}
+
+.ns-unit strong {
+    font-size: clamp(2rem, 3.2vw, 2.9rem);
+    line-height: 1;
+    font-weight: 700;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+}
+
+.ns-unit em {
+    margin-top: 10px;
+    font-style: normal;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'BPGglaho', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif !important;
+}
+
+.ns-sep {
+    font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    line-height: 1;
+    color: rgba(170, 149, 79, 0.4);
+}
+
+.next-service .ns-where {
+    margin: 26px 0 0;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: 'BPGglaho', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif !important;
+}
+
+.next-service .ns-where i {
+    color: var(--gold);
+    margin-right: 8px;
+}
+
+/* მისამართი თავადაა რუკის ბმული — კონტაქტის სექციის სარკე */
+a.next-service .ns-where, .next-service a.ns-where {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.next-service a.ns-where:hover {
+    color: var(--gold);
+}
+
+.next-service .ns-where-ext {
+    font-size: 0.72em;
+    opacity: 0.6;
+    margin-right: 0;
+    color: inherit;
+}
+
+.next-service a.ns-where:hover .ns-where-ext {
+    opacity: 1;
+}
+
+.next-service.is-live .ns-eyebrow {
+    color: #ff7a7a;
+}
+
+.next-service.is-live .ns-count {
+    display: none;
+}
+
+.ns-live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: #ff4d4d;
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
+    animation: ns-pulse 1.8s infinite;
+}
+
+@keyframes ns-pulse {
+    70%  { box-shadow: 0 0 0 12px rgba(255, 77, 77, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+}
+
+@media (max-width: 991px) {
+    .welcome-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* ერთ სვეტში ბანერს ისევ ორსვეტიანი შიგთავსი უბრუნდება */
+    .welcome-row .welcome-container {
+        grid-template-columns: 1.2fr 1.8fr;
+        gap: 50px;
+    }
+}
+
+@media (max-width: 768px) {
+    .welcome-row {
+        margin-top: -20px;
+        margin-bottom: -20px;
+        padding: 0 14px;
+        gap: 16px;
+    }
+
+    .welcome-row .welcome-container {
+        grid-template-columns: 1fr;
+        gap: 35px;
+    }
+
+    .welcome-row > .welcome-banner.floating-banner,
+    .next-service {
+        padding: 40px 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-row {
+        margin-top: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ns-live-dot { animation: none; }
+    .next-service { transition: none; }
+}
