@@ -64,6 +64,8 @@ export const registrationEvent = {
     {
       name: 'imageUrl',
       title: 'ბარათის სურათი',
+      description:
+        'თუ ცარიელია, საიტი გამოიყენებს გვერდზე უკვე არსებულ სურათს — ამიტომ ეს ველი გამოქვეყნებას არ ბლოკავს.',
       type: 'image',
       options: {hotspot: true},
       fields: [
@@ -73,7 +75,9 @@ export const registrationEvent = {
           type: 'string',
         },
       ],
-      validation: Rule => Rule.required(),
+      // გაფრთხილება და არა შეცდომა: ღონისძიების ბარათს საიტზე თავისი სტატიკური
+      // სურათი აქვს, ამიტომ სურათის გარეშეც სწორად გამოიყურება.
+      validation: Rule => Rule.required().warning('სასურველია სურათის დამატება.'),
     },
   ],
 
