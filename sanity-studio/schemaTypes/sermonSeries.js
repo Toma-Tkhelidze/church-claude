@@ -1,88 +1,153 @@
+const youtubeUrlRule = Rule =>
+  Rule.required()
+    .uri({scheme: ['http', 'https']})
+    .custom(value =>
+      !value || /youtube\.com|youtu\.be/.test(value) ? true : 'უნდა იყოს YouTube-ის ბმული'
+    )
+
 export const sermonSeries = {
   name: 'sermonSeries',
-  title: 'Sermon Series',
+  title: 'ქადაგებების სერია',
   type: 'document',
   fields: [
     {
       name: 'title',
-      title: 'Series Title',
+      title: 'სერიის სათაური',
       type: 'string',
-      validation: Rule => Rule.required(),
+      validation: Rule => Rule.required().max(70),
+    },
+    {
+      name: 'order',
+      title: 'რიგითობა',
+      description: 'მცირე რიცხვი ზემოთ ჩნდება ქადაგებების გვერდზე.',
+      type: 'number',
+      validation: Rule => Rule.required().integer().min(1),
     },
     {
       name: 'subtitle',
-      title: 'Series Subtitle / Short Intro',
+      title: 'ქვესათაური',
+      description: 'მოკლე აღწერა, ჩანს სათაურის ქვემოთ.',
       type: 'string',
-      validation: Rule => Rule.required(),
+      validation: Rule => Rule.required().max(120),
     },
     {
       name: 'category',
-      title: 'Series Category',
+      title: 'კატეგორია',
+      description: 'განსაზღვრავს, რომელ ფილტრში მოხვდება სერია ქადაგებების გვერდზე.',
       type: 'string',
       options: {
         list: [
-          {title: 'Spiritual Growth (სულიერი ზრდა)', value: 'spiritual'},
-          {title: 'Family & Life (ოჯახი & ცხოვრება)', value: 'family'},
-          {title: 'Biblical Teachings (ბიბლიური სწავლებები)', value: 'biblical'},
+          {title: 'სულიერი ზრდა', value: 'spiritual'},
+          {title: 'ოჯახი & ცხოვრება', value: 'family'},
+          {title: 'ბიბლიური სწავლებები', value: 'biblical'},
         ],
+        layout: 'radio',
       },
       validation: Rule => Rule.required(),
     },
     {
       name: 'thumbnailUrl',
-      title: 'Thumbnail Image',
+      title: 'სერიის სურათი',
       type: 'image',
+      options: {hotspot: true},
+      fields: [
+        {
+          name: 'alt',
+          title: 'ალტერნატიული ტექსტი',
+          type: 'string',
+        },
+      ],
       validation: Rule => Rule.required(),
     },
     {
       name: 'description',
-      title: 'Full Description',
+      title: 'სრული აღწერა',
       type: 'text',
+      rows: 4,
       validation: Rule => Rule.required(),
     },
     {
       name: 'speaker',
-      title: 'Main Series Speaker',
+      title: 'სერიის მთავარი სპიკერი',
       type: 'string',
       validation: Rule => Rule.required(),
     },
     {
       name: 'episodes',
-      title: 'Episodes',
+      title: 'ეპიზოდები',
+      description: 'რიგითობა განსაზღვრავს, როგორ ჩამოთვლება ისინი საიტზე.',
       type: 'array',
+      validation: Rule => Rule.required().min(1),
       of: [
         {
           type: 'object',
           name: 'episode',
-          title: 'Episode',
+          title: 'ეპიზოდი',
           fields: [
             {
               name: 'title',
-              title: 'Episode Title',
+              title: 'ეპიზოდის სათაური',
               type: 'string',
               validation: Rule => Rule.required(),
             },
             {
               name: 'speaker',
-              title: 'Speaker',
+              title: 'სპიკერი',
               type: 'string',
               validation: Rule => Rule.required(),
             },
             {
               name: 'youtubeUrl',
-              title: 'YouTube URL',
+              title: 'YouTube ბმული',
               type: 'url',
-              validation: Rule => Rule.required(),
+              validation: youtubeUrlRule,
             },
             {
               name: 'duration',
-              title: 'Duration (e.g. 45 წთ)',
+              title: 'ხანგრძლივობა',
+              description: 'არასავალდებულო. მაგ. „45 წთ“. თუ ცარიელია, საიტზე საერთოდ არ გამოჩნდება.',
               type: 'string',
-              validation: Rule => Rule.required(),
             },
           ],
+          preview: {
+            select: {title: 'title', speaker: 'speaker', duration: 'duration'},
+            prepare({title, speaker, duration}) {
+              return {title, subtitle: [speaker, duration].filter(Boolean).join(' · ')}
+            },
+          },
         },
       ],
     },
   ],
+
+  orderings: [
+    {
+      title: 'რიგითობა',
+      name: 'orderAsc',
+      by: [{field: 'order', direction: 'asc'}],
+    },
+  ],
+
+  preview: {
+    select: {
+      title: 'title',
+      subtitle: 'subtitle',
+      category: 'category',
+      episodes: 'episodes',
+      media: 'thumbnailUrl',
+    },
+    prepare({title, subtitle, category, episodes, media}) {
+      const labels = {
+        spiritual: 'სულიერი ზრდა',
+        family: 'ოჯახი & ცხოვრება',
+        biblical: 'ბიბლიური სწავლებები',
+      }
+      const count = Array.isArray(episodes) ? episodes.length : 0
+      return {
+        title,
+        subtitle: `${labels[category] || category || ''} · ${count} ეპიზოდი — ${subtitle || ''}`,
+        media,
+      }
+    },
+  },
 }

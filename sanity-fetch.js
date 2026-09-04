@@ -75,6 +75,115 @@ function applyLatestSermonId(sermonId) {
   }
 }
 
+// CMS ტექსტი HTML-ში ჩასმამდე უნდა გაიწმინდოს.
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// საოჯახო ჯგუფების ბარათები. მარკაპი იმეორებს გვერდზე არსებულ სტატიკურ
+// ბარათებს ერთ-ერთში, რომ იერი არ შეიცვალოს.
+function renderFamilyGroups(groups) {
+  const grid = document.querySelector('.groups-grid');
+  if (!grid || !groups || groups.length === 0) return;
+
+  const data = {};
+  const cards = groups.map((group, index) => {
+    const id = String(index + 1);
+    const image = group.imageAssetUrl || group.imageUrl || '';
+    data[id] = {
+      title: group.title,
+      leader: group.leader,
+      formLeader: group.formLeader || group.leader,
+      time: group.time,
+      location: group.location,
+      type: group.groupType,
+      image: image,
+      description: group.description,
+      map: group.mapUrl
+    };
+
+    return `
+                <div class="group-card scroll-reveal" data-group-id="${id}">
+                    <div class="group-image-wrap">
+                        <img src="${escapeHtml(image)}"
+                            alt="${escapeHtml(group.title)}">
+                        <span class="group-badge">${escapeHtml(group.badge)}</span>
+                    </div>
+                    <div class="group-card-content">
+                        <h3 class="group-leaders">${escapeHtml(group.title)}</h3>
+                        <div class="group-meta-info">
+                            <i class="fa-solid fa-user"></i> ${escapeHtml(group.leader)}
+                        </div>
+                        <div class="group-meta-info">
+                            <i class="fa-regular fa-clock"></i> ${escapeHtml(group.cardTime)}
+                        </div>
+                        <div class="group-meta-info">
+                            <a href="${escapeHtml(group.mapUrl)}" target="_blank"
+                                rel="noopener noreferrer">
+                                <i class="fa-solid fa-location-dot"></i> მისამართი (ნახვა რუკაზე)
+                            </a>
+                        </div>
+                        <p class="group-excerpt">${escapeHtml(group.excerpt)}</p>
+                        <span class="group-action-btn">დეტალების ნახვა <i class="fa-solid fa-arrow-right"></i></span>
+                    </div>
+                </div>`;
+  });
+
+  window.groupsData = data;
+  grid.innerHTML = cards.join('');
+  if (typeof window.setupScrollReveal === 'function') window.setupScrollReveal();
+}
+
+// მსახურთა გუნდი: უფროსი პასტორები + სულიერი საბჭო.
+function renderTeam(members) {
+  if (!members || members.length === 0) return;
+
+  const pastor = members.find(m => m.memberRole === 'lead-pastor');
+  if (pastor) {
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el && value) el.textContent = value;
+    };
+    setText('sanity-pastor-name', pastor.name);
+    setText('sanity-pastor-role', pastor.roleLabel);
+    setText('sanity-pastor-tagline', pastor.tagline);
+    setText('sanity-pastor-bio1', pastor.bio1);
+    setText('sanity-pastor-bio2', pastor.bio2);
+
+    const photo = document.getElementById('sanity-pastor-photo');
+    const photoSrc = pastor.photoAssetUrl || pastor.photoUrl;
+    if (photo && photoSrc) {
+      photo.src = photoSrc;
+      if (pastor.name) photo.alt = pastor.name;
+    }
+
+    const email = document.getElementById('sanity-pastor-email');
+    if (email && pastor.email) email.href = 'mailto:' + pastor.email;
+  }
+
+  const elders = members.filter(m => m.memberRole === 'elder');
+  const eldersWrap = document.getElementById('sanity-elders-wrap');
+  if (eldersWrap && elders.length > 0) {
+    // ორ სვეტად, ისევე როგორც სტატიკურ ვერსიაში.
+    const half = Math.ceil(elders.length / 2);
+    const columns = [elders.slice(0, half), elders.slice(half)];
+    eldersWrap.innerHTML = columns
+      .filter(column => column.length > 0)
+      .map(column => `
+                        <div style="flex: 1; min-width: 140px;">
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+${column.map(member => `                                <li style="padding: 10px 0; border-bottom: 1px solid #eee; color: #444;"><strong>${escapeHtml(member.name)}</strong> <div style="color: #888; font-size: 0.85rem; margin-top: 2px;">${escapeHtml(member.roleLabel || 'საბჭოს წევრი')}</div></li>`).join('\n')}
+                            </ul>
+                        </div>`)
+      .join('');
+  }
+}
+
 function updatePageContent() {
   const groqQuery = `{
     "siteContent": *[_type == "siteContent"][0]{
@@ -104,7 +213,33 @@ function updatePageContent() {
       description,
       "imageUrl": imageUrl.asset->url
     },
-    "sermons": *[_type == "sermonSeries"] | order(_createdAt desc) {
+    "familyGroups": *[_type == "familyGroup"] | order(order asc) {
+      title,
+      leader,
+      formLeader,
+      time,
+      cardTime,
+      badge,
+      location,
+      groupType,
+      excerpt,
+      description,
+      mapUrl,
+      imageUrl,
+      "imageAssetUrl": image.asset->url
+    },
+    "teamMembers": *[_type == "teamMember"] | order(order asc) {
+      name,
+      memberRole,
+      roleLabel,
+      tagline,
+      bio1,
+      bio2,
+      email,
+      photoUrl,
+      "photoAssetUrl": photo.asset->url
+    },
+    "sermons": *[_type == "sermonSeries"] | order(order asc, _createdAt desc) {
       title,
       subtitle,
       category,
@@ -130,7 +265,10 @@ function updatePageContent() {
     .then(response => response.json())
     .then(async data => {
       if (data && data.result) {
-        const { siteContent, events, sermons } = data.result;
+        const { siteContent, events, sermons, familyGroups, teamMembers } = data.result;
+
+        renderFamilyGroups(familyGroups);
+        renderTeam(teamMembers);
 
         const latestVideoId = await latestVideoIdPromise;
         // 1. UPDATE SITECONTENT PROPERTIES
@@ -435,7 +573,7 @@ function updatePageContent() {
                             <span class="episode-title"><i class="fa-solid fa-play"></i> ${ep.title}</span>
                             <span class="episode-speaker">სპიკერი: ${ep.speaker}</span>
                         </div>
-                        <span class="episode-meta">${ep.duration}</span>
+                        ${ep.duration ? `<span class="episode-meta">${ep.duration}</span>` : ''}
                     </div>
                   `;
                 });

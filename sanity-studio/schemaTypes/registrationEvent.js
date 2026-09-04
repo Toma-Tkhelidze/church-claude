@@ -1,64 +1,87 @@
 export const registrationEvent = {
   name: 'registrationEvent',
-  title: 'Registration Event',
+  title: 'ღონისძიება',
   type: 'document',
   fields: [
     {
       name: 'eventId',
-      title: 'Event Unique ID',
+      title: 'ღონისძიების იდენტიფიკატორი',
+      description:
+        'უკავშირდება საიტზე არსებულ ბარათს. ერთი მნიშვნელობა მხოლოდ ერთხელ უნდა გამოიყენოთ.',
       type: 'string',
       options: {
         list: [
-          {title: 'Youth Camp', value: 'youth-camp'},
-          {title: 'Kids Camp', value: 'kids-camp'},
-          {title: 'Grace Conference', value: 'conference'},
+          {title: 'ახალგაზრდული ბანაკი', value: 'youth-camp'},
+          {title: 'ბავშვთა ბანაკი', value: 'kids-camp'},
+          {title: 'კონფერენცია', value: 'conference'},
         ],
+        layout: 'radio',
       },
       validation: Rule => Rule.required(),
     },
     {
       name: 'title',
-      title: 'Event Title',
+      title: 'სათაური',
       type: 'string',
-      validation: Rule => Rule.required(),
+      validation: Rule => Rule.required().max(60),
     },
     {
       name: 'status',
-      title: 'Registration Status',
+      title: 'რეგისტრაციის სტატუსი',
+      description: '„ღიაა“ ჩართავს რეგისტრაციის ღილაკს საიტზე.',
       type: 'string',
       options: {
         list: [
-          {title: 'Open (Active)', value: 'active'},
-          {title: 'Closed (Completed)', value: 'closed'},
+          {title: 'ღიაა', value: 'active'},
+          {title: 'დასრულდა', value: 'closed'},
         ],
+        layout: 'radio',
       },
+      initialValue: 'closed',
       validation: Rule => Rule.required(),
     },
     {
       name: 'dateText',
-      title: 'Date / Time Text',
+      title: 'თარიღი (ტექსტად)',
+      description: 'მაგ. „ივლისი, 2026“',
       type: 'string',
-      placeholder: 'e.g. ივლისი, 2026',
       validation: Rule => Rule.required(),
     },
     {
       name: 'detailsText',
-      title: 'Details / Metadata Text (Age range or Location)',
+      title: 'დამატებითი ინფორმაცია',
+      description: 'ასაკი ან ადგილმდებარეობა. მაგ. „ასაკი: 14-20 წელი“',
       type: 'string',
-      placeholder: 'e.g. ასაკი: 14-20 წელი or მთავარი დარბაზი',
       validation: Rule => Rule.required(),
     },
     {
       name: 'description',
-      title: 'Event Description',
+      title: 'აღწერა',
       type: 'text',
+      rows: 4,
       validation: Rule => Rule.required(),
     },
     {
       name: 'imageUrl',
-      title: 'Event Image',
+      title: 'ბარათის სურათი',
       type: 'image',
+      options: {hotspot: true},
+      fields: [
+        {
+          name: 'alt',
+          title: 'ალტერნატიული ტექსტი',
+          type: 'string',
+        },
+      ],
       validation: Rule => Rule.required(),
     },
   ],
+
+  preview: {
+    select: {title: 'title', status: 'status', dateText: 'dateText', media: 'imageUrl'},
+    prepare({title, status, dateText, media}) {
+      const label = status === 'active' ? '🟢 ღიაა' : '🔴 დასრულდა'
+      return {title, subtitle: `${label} · ${dateText || ''}`, media}
+    },
+  },
 }
