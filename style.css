@@ -3393,12 +3393,19 @@ a.next-service .ns-where, .next-service a.ns-where {
    ეკრანზე ხედავს. კონტენტს sanity-fetch.js ავსებს; აქტიური
    ღონისძიების არარსებობისას ბლოკი დამალული რჩება.
    ========================================================================== */
+/* მუქი ლენტა სლაიდერსა და info-grid-ს შორის. გარშემო ფონი ღიაა
+   (#fafafa), ამიტომ ოქროსფერი აბზინდა მუქ ფონს სხიად სხვა ხდება. */
 .open-events {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
-    margin-top: 30px;
+    padding: 34px clamp(16px, 4vw, 40px);
+    background: var(--dark-800);
+    border-top: 1px solid rgba(170, 149, 79, 0.30);
+    border-bottom: 1px solid rgba(170, 149, 79, 0.30);
+    position: relative;
+    z-index: 2;
 }
 
 .open-events[hidden] { display: none; }
@@ -3477,7 +3484,7 @@ a.next-service .ns-where, .next-service a.ns-where {
 
 @media (max-width: 560px) {
     .open-events {
-        margin-top: 22px;
+        padding: 26px 16px;
     }
 
     /* წარწერა არ ვხსნით: მარტო სახელი ვერ ახსნის, რას ნიშნავს
