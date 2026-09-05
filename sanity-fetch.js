@@ -175,6 +175,40 @@ function renderFamilyGroups(groups) {
   if (typeof window.setupScrollReveal === 'function') window.setupScrollReveal();
 }
 
+// მთავარ გვერდზე ღია რეგისტრაციების ზოლი. ვიზიტორმა შეიძლება ვერასოდეს
+// მოახერხოს რეგისტრაციის გვერდზე, ამიტომ აქტიური ღონისძიება აქვეც ჩანს.
+// თუ აქტიური არევია, ბლოკი დამალული რჩება — ცარიელი ადგილი არ რჩება.
+function renderOpenEvents(events) {
+  const mount = document.getElementById('openEvents');
+  if (!mount) return;
+
+  const open = (events || []).filter(evt => evt && evt.status === 'active' && evt.title);
+  if (open.length === 0) {
+    mount.hidden = true;
+    return;
+  }
+
+  mount.innerHTML = open.map(evt => {
+    const anchor = evt.eventId ? '#' + encodeURIComponent(evt.eventId) : '';
+    const date = evt.dateText
+      ? `<span class="open-event-date">${escapeHtml(evt.dateText)}</span>`
+      : '';
+    return `
+      <a class="open-event" href="pages/registration.html${anchor}">
+        <span class="open-event-flag">
+          <span class="open-event-dot" aria-hidden="true"></span>ღია რეგისტრაცია
+        </span>
+        <span class="open-event-title">${escapeHtml(evt.title)}</span>
+        ${date}
+        <span class="open-event-cta">
+          დარეგისტრირდი <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
+        </span>
+      </a>`;
+  }).join('');
+
+  mount.hidden = false;
+}
+
 // მსახურთა გუნდი: უფროსი პასტორები + სულიერი საბჭო.
 function renderTeam(members) {
   if (!members || members.length === 0) return;
@@ -308,6 +342,7 @@ function updatePageContent() {
 
         renderFamilyGroups(familyGroups);
         renderTeam(teamMembers);
+        renderOpenEvents(events);
 
         const latestVideoId = await latestVideoIdPromise;
         // 1. UPDATE SITECONTENT PROPERTIES
