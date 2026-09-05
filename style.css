@@ -3270,14 +3270,81 @@ a.next-service .ns-where, .next-service a.ns-where {
     .prayer-submit.is-sending .prayer-submit-icon { animation: none; }
 }
 
+/* წარმატების მდგომარეობა: მწვანე ნიშანი, რომელიც თვალწინ იხაზება */
 .prayer-done {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     margin: 0;
-    padding: 22px 24px;
-    border-radius: var(--radius-md);
-    background: rgba(170, 149, 79, 0.12);
-    color: #6c5c26;
-    font-size: 1rem;
-    line-height: 1.7;
+    padding: 42px 24px;
+    border-radius: var(--radius-lg);
+    background: #f2faf5;
+    border: 1px solid #cfe9da;
+}
+
+.prayer-done[hidden] { display: none; }
+
+.prayer-done-mark svg {
+    width: 66px;
+    height: 66px;
+    display: block;
+}
+
+/* დასვენების მდგომარეობა დახაზულია (offset: 0), ანიმაცია კი ნულიდან
+   იწყება. თუ ანიმაცია რაიმე მიზეზით არ გაეშვა, ნიშანი მაინც ჩანს. */
+.prayer-done-circle {
+    fill: none;
+    stroke: #2e9e5b;
+    stroke-width: 2;
+    stroke-dasharray: 151;
+    stroke-dashoffset: 0;
+    animation: prayer-draw-circle 0.6s cubic-bezier(0.65, 0, 0.45, 1) backwards;
+}
+
+.prayer-done-check {
+    fill: none;
+    stroke: #2e9e5b;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 0;
+    /* backwards — დაყოვნების დროს დაუხატავი დარჩეს */
+    animation: prayer-draw-check 0.35s cubic-bezier(0.65, 0, 0.45, 1) 0.45s backwards;
+}
+
+@keyframes prayer-draw-circle {
+    from { stroke-dashoffset: 151; }
+    to   { stroke-dashoffset: 0; }
+}
+
+@keyframes prayer-draw-check {
+    from { stroke-dashoffset: 40; }
+    to   { stroke-dashoffset: 0; }
+}
+
+.prayer-done-title {
+    margin: 20px 0 6px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f7a45;
+}
+
+.prayer-done-text {
+    margin: 0;
+    max-width: 34ch;
+    font-size: 0.98rem;
+    line-height: 1.75;
+    color: var(--text-soft);
+}
+
+/* ანიმაციის გარეშე ნიშანი დახაზული უნდა დარჩეს */
+@media (prefers-reduced-motion: reduce) {
+    .prayer-done-circle,
+    .prayer-done-check {
+        animation: none;
+    }
 }
 
 /* სკრინრიდერისთვის დარჩენილი, თვალით უხილავი წარწერები */
