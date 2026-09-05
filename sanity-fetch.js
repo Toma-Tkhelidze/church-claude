@@ -29,10 +29,11 @@ function getVideoDetails(url) {
 // The newest sermon comes from the YouTube playlist feed. It is fetched
 // independently of Sanity so a slow, blocked or unreachable Sanity request
 // cannot leave the page showing a stale hardcoded video.
-// ბოლო ქადაგების id ექვსი საათით ინახება ბრაუზერში: ქადაგება
-// კვირაში ერთხელ დევს, ამიტომ განმეორებით ვიზიტზე ქსელში გასვლა ზედმეტია.
+// ბოლო ქადაგების id მოკლე დროით ინახება ბრაუზერში, რომ ერთი
+// ვიზიტის განმავლობაში გვერდიდან გვერდზე გადასვლამ ერთი და იგივე მოთხოვნა არ
+// გააგზავნოს. ვადა განზრახ: ახალი ქადაგება არაუმეტეს 15 წუთს დააგვიანებს.
 const SERMON_CACHE_KEY = 'efc:latest-sermon:v1';
-const SERMON_CACHE_TTL = 6 * 60 * 60 * 1000;
+const SERMON_CACHE_TTL = 15 * 60 * 1000;
 
 function readCachedSermonId() {
   try {
@@ -54,12 +55,10 @@ function fetchLatestPlaylistVideoId() {
   if (cached) return Promise.resolve(cached);
 
   const playlistId = 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A';
-  // კეშის გამანახლებელი 6 საათიანია. აქამდე 5 წუთი ედგა —
-  // rss2json-ი ყოველ ჯერზე ახალ feed-ად აღიქვამდა და თავიდან ამუშავებდა,
-  // რაც უფასო გეგმის ლიმიტს აწვდებდა (429). ქადაგება კვირაში ერთხელაა,
-  // ამიტომ 6 საათი სრულიად საკმარისია.
-  const cacheBuster = Math.floor(Date.now() / SERMON_CACHE_TTL);
-  const feedUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.youtube.com/feeds/videos.xml?playlist_id=' + playlistId + '&t=' + cacheBuster)}`;
+  // მისამართში გამანახლებელი (&t=...) განზრახ აღარ არის. ის rss2json-ს
+  // აიძულებდა feed-ის თავიდან დამუშავებას და იწვევდა 429-ს. მისი გარეშე
+  // სერვისი საკუთარ კეშს იყენებს და ახალ ვიდეოს ბევრად უფრო ადრე ვიგებთ.
+  const feedUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.youtube.com/feeds/videos.xml?playlist_id=' + playlistId)}`;
 
   return fetch(feedUrl)
     .then(res => {
