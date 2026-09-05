@@ -697,17 +697,17 @@ window.unlockBodyScroll = function() {
     const form = document.getElementById('prayerForm');
     if (!form) return;
 
-    // ⚙️ შესავსებია ერთხელ, როცა Google Form მზად იქნება.
+    // Google Form „ლოცვითი საჭიროება“ — entry იდენტიფიკატორები ფორმიდანაა აღებული.
     // action  — ფორმის .../formResponse მისამართი
     // fields  — თითოეული კითხვის entry.XXXXXXXXX იდენტიფიკატორი
-    // სანამ ცარიელია, ღილაკი ელ-ფოსტას ხსნის, რომ თხოვნა მაინც მივიდეს
+    // თუ action ოდესმე დაცარიელდება, ღილაკი ელ-ფოსტაზე გადავა, რომ თხოვნა მაინც მივიდეს
     // და მომხმარებელს ცრუ დადასტურება არ დავანახოთ.
     const PRAYER_FORM = {
-        action: '',
+        action: 'https://docs.google.com/forms/d/e/1FAIpQLSe9oD4E70ISx6NoVYD9D_xWgWnOoTg-TcS3yNyGyZmwMH9eyg/formResponse',
         fields: {
-            message: '',
-            name: '',
-            contact: ''
+            message: 'entry.575442378',   // ლოცვითი საჭიროება (სავალდებულო)
+            name: 'entry.1565967549',     // სახელი და გვარი
+            contact: 'entry.340373505'    // ტელეფონის ნომერი ან ელფოსტა
         }
     };
 
