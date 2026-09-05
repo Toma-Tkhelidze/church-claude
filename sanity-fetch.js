@@ -109,16 +109,6 @@ function applyLatestSermonId(sermonId) {
   if (mainPlayer && !(mainPlayer.src || '').includes(sermonId)) {
     mainPlayer.src = `https://www.youtube-nocookie.com/embed/${sermonId}?rel=0&modestbranding=1&vq=hd1080`;
   }
-
-  // კვირის მუხლის ბარათში „მოუსმინე ქადაგებას“ იმავე ვიდეოზე მიდის,
-  // რომელიც „ბოლო ქადაგებაშია“ — ორივე აქედან მოდის, ამიტომ
-  // ბმული ყოველ კვირას თავად განახლდება.
-  const verseSermonLink = document.getElementById('sanity-weekly-verse-link');
-  if (verseSermonLink) {
-    verseSermonLink.href = `https://www.youtube.com/watch?v=${sermonId}`;
-    verseSermonLink.setAttribute('target', '_blank');
-    verseSermonLink.setAttribute('rel', 'noopener noreferrer');
-  }
 }
 
 // CMS ტექსტი HTML-ში ჩასმამდე უნდა გაიწმინდოს.
