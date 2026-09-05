@@ -188,21 +188,16 @@ function renderOpenEvents(events) {
     return;
   }
 
+  // hero-ში აბზინდა მოკლე უნდა იყოს: თარიღი და დეტალები
+  // რეგისტრაციის გვერდზეა, სადაც ამის ადგილია.
   mount.innerHTML = open.map(evt => {
     const anchor = evt.eventId ? '#' + encodeURIComponent(evt.eventId) : '';
-    const date = evt.dateText
-      ? `<span class="open-event-date">${escapeHtml(evt.dateText)}</span>`
-      : '';
     return `
       <a class="open-event" href="pages/registration.html${anchor}">
-        <span class="open-event-flag">
-          <span class="open-event-dot" aria-hidden="true"></span>ღია რეგისტრაცია
-        </span>
+        <span class="open-event-dot" aria-hidden="true"></span>
+        <span class="open-event-flag">ღია რეგისტრაცია</span>
         <span class="open-event-title">${escapeHtml(evt.title)}</span>
-        ${date}
-        <span class="open-event-cta">
-          დარეგისტრირდი <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
-        </span>
+        <i class="fa-solid fa-arrow-right-long open-event-arrow" aria-hidden="true"></i>
       </a>`;
   }).join('');
 

@@ -177,6 +177,10 @@
             <h1 id="sanity-main-title">ქუთაისის სახარების რწმენის ეკლესია</h1>
             <p class="cursive-text">შენი ადგილი აქ არის.</p>
             <a href="#welcome" class="btn btn-hero">გაიგე მეტი</a>
+
+            <!-- ღია რეგისტრაციები — კონტენტს sanity-fetch.js ავსებს.
+                 აქტიური ღონისძიების გარეშე ბლოკი დამალულია და hero-ს არ აგრძელებს. -->
+            <div class="open-events" id="openEvents" hidden aria-label="ღია რეგისტრაციები"></div>
         </div>
     </section>
 
@@ -274,10 +278,6 @@
             </a>
         </aside>
     </div>
-
-    <!-- ღია რეგისტრაციები — კონტენტს sanity-fetch.js ავსებს.
-         თუ აქტიური ღონისძიება არ არის, ბლოკი დამალული რჩება. -->
-    <div class="open-events" id="openEvents" hidden aria-label="ღია რეგისტრაციები"></div>
 
     <section class="building-section" aria-label="Church Building Support">
         <div class="building-container">
