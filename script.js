@@ -718,6 +718,9 @@ window.unlockBodyScroll = function() {
     const contact = document.getElementById('prayerContact');
     const anon = document.getElementById('prayerAnon');
     const error = form.querySelector('.prayer-error');
+    const submit = form.querySelector('.prayer-submit');
+    const submitIcon = form.querySelector('.prayer-submit-icon');
+    const submitLabel = form.querySelector('.prayer-submit-label');
     const done = form.parentElement.querySelector('.prayer-done');
 
     // ანონიმურ რეჟიმში სახელი და კონტაქტი ითიშება, რომ აშკარა იყოს,
@@ -732,7 +735,19 @@ window.unlockBodyScroll = function() {
         }
     });
 
+    // გაგზავნის მდგომარეობა: ღილაკი იბლოკება, ხატი ბრუნავს და
+    // წარწერა იცვლება — ასე ორჯერ დაჭერა აღარ ხდება.
+    const setSending = on => {
+        submit.disabled = on;
+        submit.classList.toggle('is-sending', on);
+        submitIcon.className = on
+            ? 'fa-solid fa-circle-notch prayer-submit-icon'
+            : 'fa-solid fa-paper-plane prayer-submit-icon';
+        submitLabel.textContent = on ? 'იგზავნება…' : 'გაგზავნა';
+    };
+
     const fail = message => {
+        setSending(false);
         error.textContent = message;
         error.hidden = false;
     };
@@ -759,6 +774,8 @@ window.unlockBodyScroll = function() {
             window.location.href = 'mailto:' + FALLBACK_EMAIL + '?subject=' + subject + '&body=' + mailBody;
             return;
         }
+
+        setSending(true);
 
         const data = new FormData();
         data.append(PRAYER_FORM.fields.message, body);

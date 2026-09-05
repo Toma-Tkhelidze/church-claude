@@ -3181,18 +3181,93 @@ a.next-service .ns-where, .next-service a.ns-where {
     font-size: 0.9rem;
 }
 
+/* ბაზისურ .btn-ს აღარ ეყრდნობა: მისი text-transform: uppercase ქართულს
+   მთავრულს ხდის და 12px-ზე ძნელად იკითხება. */
 .prayer-submit {
-    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    margin-top: 26px;
+    padding: 15px 34px;
+    border: 0;
+    border-radius: 999px;
     background: var(--dark-900);
     color: var(--white);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    /* ბარათის დანარჩენი ტექსტის შრიფტი. font-feature-settings: normal
+       აუცილებელია: გლობალური წესიდან გადმოსული „case“ ფუნქცია
+       FiraGO-ში მხედრულს მთავრულით ცვლის და წარწერა კბევა. */
+    /* !important გვჭირდება: style.css-ში გლობალური წესი ყველა ღილაკს
+       FiraGo-Medium-ს აძალებს, აქ კი ბარათის ტექსტთან ერთიანობაა საჭირო. */
+    font-family: 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif !important;
+    font-feature-settings: normal;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(25, 23, 19, 0.18);
+    transition:
+        background 0.3s var(--transition-ease, ease),
+        color 0.3s ease,
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
 }
 
-.prayer-submit:hover {
+.prayer-submit-icon {
+    font-size: 0.95em;
+    transition: transform 0.3s ease;
+}
+
+.prayer-submit:hover:not(:disabled) {
     background: var(--gold);
     color: var(--dark-900);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 12px 28px rgba(170, 149, 79, 0.35);
+}
+
+/* ქაღალდი ოდნავ წინ იწევს — გაგზავნის მინიშნება */
+.prayer-submit:hover:not(:disabled) .prayer-submit-icon {
+    transform: translateX(3px) rotate(-8deg);
+}
+
+.prayer-submit:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(170, 149, 79, 0.3);
+}
+
+.prayer-submit:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+}
+
+/* გაგზავნის პროცესში: ღილაკი იბლოკება და ხატი ბრუნავს,
+   რომ ორჯერ დაჭერა და უპასუხო ლოდინი არ გამოვიდეს */
+.prayer-submit:disabled {
+    cursor: wait;
+    opacity: 0.75;
+    transform: none;
+    box-shadow: none;
+}
+
+.prayer-submit.is-sending .prayer-submit-icon {
+    animation: prayer-spin 0.9s linear infinite;
+}
+
+@keyframes prayer-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 560px) {
+    .prayer-submit {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .prayer-submit,
+    .prayer-submit-icon { transition: none; }
+    .prayer-submit.is-sending .prayer-submit-icon { animation: none; }
 }
 
 .prayer-done {
