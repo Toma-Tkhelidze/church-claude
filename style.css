@@ -3387,125 +3387,209 @@ a.next-service .ns-where, .next-service a.ns-where {
 }
 
 /* ==========================================================================
-   ღია რეგისტრაციის აბზინდა (hero-ში)
-   ოქროსფერი აბზინდა „გაიგე მეტის“ ქვემოთ. მუქ ფონზე მკვეთრად იკითხება
-   და გვერდის სიმაღლეს პრაქტიკულად არ ზრდის — ვიზიტორი პირველივე
-   ეკრანზე ხედავს. კონტენტს sanity-fetch.js ავსებს; აქტიური
-   ღონისძიების არარსებობისას ბლოკი დამალული რჩება.
+   ღია რეგისტრაციები — საინფორმაციო ბარათები (მთავარი გვერდი)
+   მსახურებების სლაიდერსა და info-grid-ს შორის. ორივე მეზობელი ღიაა,
+   ამიტომ სექცია თბილი კრემისფერია — გამოიყოფა, მაგრამ საიტის ღია
+   რიტმიდან არ ამოვარდნება. ბარათი სურათს იყენებს, რომელიც Sanity-ში
+   ისედაც გვაქვს და მთავარ გვერდზე აქამდე არსად ჩანდა.
    ========================================================================== */
-/* მუქი ლენტა სლაიდერსა და info-grid-ს შორის. გარშემო ფონი ღიაა
-   (#fafafa), ამიტომ ოქროსფერი აბზინდა მუქ ფონს სხიად სხვა ხდება. */
-.open-events {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    padding: 34px clamp(16px, 4vw, 40px);
-    background: var(--dark-800);
-    border-top: 1px solid rgba(170, 149, 79, 0.30);
-    border-bottom: 1px solid rgba(170, 149, 79, 0.30);
+.events-promo {
+    padding: 90px 20px;
+    background: #f7f2e8;
+    border-top: 1px solid rgba(170, 149, 79, 0.22);
+    border-bottom: 1px solid rgba(170, 149, 79, 0.22);
     position: relative;
     z-index: 2;
 }
 
-.open-events[hidden] { display: none; }
+.events-promo[hidden] { display: none; }
 
-.open-event {
+.events-promo-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.events-promo-head {
+    text-align: center;
+    margin-bottom: 46px;
+}
+
+.events-promo-head h2 {
+    font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+    line-height: 1.25;
+    color: var(--dark-900);
+    margin: 0;
+}
+
+.events-promo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+/* ── ბარათი: სურათი გვერდით, შიგთავსი მეორე მხარეს ────────────────── */
+.event-promo {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: stretch;
+    background: var(--white);
+    border: 1px solid #eae4d6;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 14px 36px rgba(25, 23, 19, 0.08);
+    text-decoration: none;
+    transition: transform 0.35s var(--transition), box-shadow 0.35s var(--transition);
+}
+
+.event-promo:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 52px rgba(25, 23, 19, 0.16);
+}
+
+/* ორზე მეტი ღონისძიებისას მხარეები ენაცვლება — რიტმი ჩნდება
+   და სია ერთფეროვან სვეტად აღარ იკითხება */
+.event-promo:nth-child(even) .event-promo-media { order: 2; }
+
+.event-promo-media {
+    display: block;
+    overflow: hidden;
+    background: #ece5d6;
+    min-height: 240px;
+}
+
+.event-promo-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s var(--transition);
+}
+
+.event-promo:hover .event-promo-media img { transform: scale(1.05); }
+
+.event-promo-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 38px clamp(24px, 3vw, 46px);
+}
+
+/* სტატუსის ბეჯი — პულსირებადი წერტილით */
+.event-promo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 15px;
+    border-radius: 999px;
+    background: rgba(170, 149, 79, 0.14);
+    color: #6c5c26;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+}
+
+.event-promo-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 0 rgba(170, 149, 79, 0.7);
+    animation: event-promo-pulse 2s infinite;
+}
+
+@keyframes event-promo-pulse {
+    70%  { box-shadow: 0 0 0 9px rgba(170, 149, 79, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(170, 149, 79, 0); }
+}
+
+.event-promo-title {
+    display: block;
+    font-family: 'FiraGoBold', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+    line-height: 1.25;
+    color: var(--dark-900);
+    margin-bottom: 14px;
+}
+
+.event-promo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-bottom: 16px;
+    font-size: 0.92rem;
+    color: var(--text-soft);
+}
+
+.event-promo-meta i {
+    color: var(--gold);
+    margin-right: 8px;
+}
+
+.event-promo-text {
+    margin: 0 0 26px;
+    font-size: 0.98rem;
+    line-height: 1.8;
+    color: var(--text-soft);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.event-promo-cta {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 11px 22px;
+    margin-top: auto;
+    padding: 14px 30px;
     border-radius: 999px;
-    background: rgba(170, 149, 79, 0.95);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
-    color: var(--dark-900);
-    text-decoration: none;
-    font-family: 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
-    font-feature-settings: normal;
-    font-size: 0.92rem;
-    line-height: 1;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-}
-
-.open-event:hover {
-    transform: translateY(-2px);
-    background: var(--gold-light);
-    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.4);
-}
-
-.open-event:focus-visible {
-    outline: 2px solid var(--white);
-    outline-offset: 3px;
-}
-
-/* პულსირებადი წერტილი — თვალის მიმზიდველი, მაგრამ არა ხმაურიანი */
-.open-event-dot {
-    flex: 0 0 auto;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
     background: var(--dark-900);
-    box-shadow: 0 0 0 0 rgba(17, 17, 17, 0.55);
-    animation: open-event-pulse 2s infinite;
-}
-
-@keyframes open-event-pulse {
-    70%  { box-shadow: 0 0 0 9px rgba(17, 17, 17, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(17, 17, 17, 0); }
-}
-
-.open-event-flag {
-    font-size: 0.78em;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.72;
-    white-space: nowrap;
-}
-
-.open-event-title {
+    color: var(--white);
+    font-family: 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
+    font-size: 0.95rem;
     font-weight: 600;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    transition: background 0.3s ease, color 0.3s ease, gap 0.3s ease;
 }
 
-.open-event-arrow {
-    font-size: 0.85em;
-    transition: transform 0.3s ease;
+.event-promo:hover .event-promo-cta {
+    background: var(--gold);
+    color: var(--dark-900);
+    gap: 15px;
 }
 
-.open-event:hover .open-event-arrow {
-    transform: translateX(4px);
-}
+@media (max-width: 900px) {
+    .events-promo { padding: 60px 16px; }
 
-@media (max-width: 560px) {
-    .open-events {
-        padding: 26px 16px;
+    .events-promo-head { margin-bottom: 32px; }
+
+    /* ვიწრო ეკრანზე სურათი ზემოთ გადადის, მხარეების მონაცვლეობა ითიშება */
+    .event-promo {
+        grid-template-columns: 1fr;
     }
 
-    /* წარწერა არ ვხსნით: მარტო სახელი ვერ ახსნის, რას ნიშნავს
-       ოქროსფერი აბზინდა. საჭიროებისამებრ ორ ხაზზე ეწყობა. */
-    .open-event {
-        max-width: 100%;
-        padding: 10px 18px;
-        font-size: 0.82rem;
-        flex-wrap: wrap;
+    .event-promo:nth-child(even) .event-promo-media { order: 0; }
+
+    .event-promo-media {
+        min-height: 0;
+        aspect-ratio: 16 / 9;
+    }
+
+    .event-promo-body { padding: 28px 22px; }
+
+    .event-promo-cta {
+        width: 100%;
         justify-content: center;
-        row-gap: 5px;
-        line-height: 1.35;
     }
-
-    .open-event-title { white-space: normal; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .open-event-dot { animation: none; }
-    .open-event,
-    .open-event-arrow { transition: none; }
+    .event-promo,
+    .event-promo-media img,
+    .event-promo-cta { transition: none; }
+    .event-promo-dot { animation: none; }
 }
 
 /* ღუზით მოსული ბარათი ფიქსირებულ ჰედერს არ უნდა შეეფაროს */

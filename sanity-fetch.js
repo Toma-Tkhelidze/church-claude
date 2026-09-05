@@ -188,18 +188,48 @@ function renderOpenEvents(events) {
     return;
   }
 
-  // hero-ში აბზინდა მოკლე უნდა იყოს: თარიღი და დეტალები
-  // რეგისტრაციის გვერდზეა, სადაც ამის ადგილია.
-  mount.innerHTML = open.map(evt => {
+  // სრული ბარათი: სურათი, სტატუსი, თარიღი, დეტალები და აღწერა —
+  // იგივე, რაც რეგისტრაციის გვერდზეა, რომ ვიზიტორმა გადასვლამდე იცოდეს, რას ქანს.
+  const cards = open.map(evt => {
     const anchor = evt.eventId ? '#' + encodeURIComponent(evt.eventId) : '';
+    const metaIcon = evt.eventId === 'conference' ? 'fa-location-dot' : 'fa-users';
+    const media = evt.imageUrl
+      ? `<span class="event-promo-media"><img src="${escapeHtml(evt.imageUrl)}" alt="" loading="lazy"></span>`
+      : '';
+    const date = evt.dateText
+      ? `<span><i class="fa-regular fa-calendar" aria-hidden="true"></i>${escapeHtml(evt.dateText)}</span>`
+      : '';
+    const details = evt.detailsText
+      ? `<span><i class="fa-solid ${metaIcon}" aria-hidden="true"></i>${escapeHtml(evt.detailsText)}</span>`
+      : '';
+    const text = evt.description
+      ? `<p class="event-promo-text">${escapeHtml(evt.description)}</p>`
+      : '';
     return `
-      <a class="open-event" href="pages/registration.html${anchor}">
-        <span class="open-event-dot" aria-hidden="true"></span>
-        <span class="open-event-flag">ღია რეგისტრაცია</span>
-        <span class="open-event-title">${escapeHtml(evt.title)}</span>
-        <i class="fa-solid fa-arrow-right-long open-event-arrow" aria-hidden="true"></i>
+      <a class="event-promo" href="pages/registration.html${anchor}">
+        ${media}
+        <span class="event-promo-body">
+          <span class="event-promo-badge">
+            <span class="event-promo-dot" aria-hidden="true"></span>რეგისტრაცია ღიაა
+          </span>
+          <span class="event-promo-title">${escapeHtml(evt.title)}</span>
+          <span class="event-promo-meta">${date}${details}</span>
+          ${text}
+          <span class="event-promo-cta">
+            რეგისტრაციის გავლა <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
+          </span>
+        </span>
       </a>`;
   }).join('');
+
+  mount.innerHTML = `
+    <div class="events-promo-inner">
+      <div class="events-promo-head">
+        <span class="grid-uppertitle">ღონისძიებები</span>
+        <h2>დაიკავე შენი ადგილი</h2>
+      </div>
+      <div class="events-promo-list">${cards}</div>
+    </div>`;
 
   mount.hidden = false;
 }
