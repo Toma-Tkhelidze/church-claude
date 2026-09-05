@@ -29,13 +29,47 @@ function getVideoDetails(url) {
 // The newest sermon comes from the YouTube playlist feed. It is fetched
 // independently of Sanity so a slow, blocked or unreachable Sanity request
 // cannot leave the page showing a stale hardcoded video.
+// ბოლო ქადაგების id ექვსი საათით ინახება ბრაუზერში: ქადაგება
+// კვირაში ერთხელ დევს, ამიტომ განმეორებით ვიზიტზე ქსელში გასვლა ზედმეტია.
+const SERMON_CACHE_KEY = 'efc:latest-sermon:v1';
+const SERMON_CACHE_TTL = 6 * 60 * 60 * 1000;
+
+function readCachedSermonId() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SERMON_CACHE_KEY));
+    if (raw && raw.id && Date.now() - raw.at < SERMON_CACHE_TTL) return raw.id;
+  } catch (e) { /* private mode ან დაზიანებული ჩანაწერი */ }
+  return null;
+}
+
+function cacheSermonId(id) {
+  if (!id) return;
+  try {
+    localStorage.setItem(SERMON_CACHE_KEY, JSON.stringify({ id: id, at: Date.now() }));
+  } catch (e) { /* კვოტა ან private mode */ }
+}
+
 function fetchLatestPlaylistVideoId() {
+  const cached = readCachedSermonId();
+  if (cached) return Promise.resolve(cached);
+
   const playlistId = 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A';
-  const cacheBuster = Math.floor(Date.now() / 300000);
+  // კეშის გამანახლებელი 6 საათიანია. აქამდე 5 წუთი ედგა —
+  // rss2json-ი ყოველ ჯერზე ახალ feed-ად აღიქვამდა და თავიდან ამუშავებდა,
+  // რაც უფასო გეგმის ლიმიტს აწვდებდა (429). ქადაგება კვირაში ერთხელაა,
+  // ამიტომ 6 საათი სრულიად საკმარისია.
+  const cacheBuster = Math.floor(Date.now() / SERMON_CACHE_TTL);
   const feedUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.youtube.com/feeds/videos.xml?playlist_id=' + playlistId + '&t=' + cacheBuster)}`;
 
   return fetch(feedUrl)
-    .then(res => (res.ok ? res.json() : null))
+    .then(res => {
+      if (!res.ok) {
+        // ყველაზე ხშირი 429-ია (გადაჭარბებული ლიმიტი) — ვხედავთ დიაგნოსტიკისთვის.
+        console.warn('YouTube playlist feed request failed with status', res.status);
+        return null;
+      }
+      return res.json();
+    })
     .then(rssData => {
       if (!rssData || !rssData.items || rssData.items.length === 0) return null;
       // Find the video item with the latest pubDate
@@ -43,11 +77,14 @@ function fetchLatestPlaylistVideoId() {
         return (new Date(item.pubDate) > new Date(latest.pubDate)) ? item : latest;
       }, rssData.items[0]);
       if (!latestVideo) return null;
+      let id = null;
       if (latestVideo.guid) {
         const parts = latestVideo.guid.split(':');
-        if (parts.length >= 3) return parts[2];
+        if (parts.length >= 3) id = parts[2];
       }
-      return getYouTubeId(latestVideo.link);
+      if (!id) id = getYouTubeId(latestVideo.link);
+      cacheSermonId(id);
+      return id;
     })
     .catch(rssError => {
       console.warn('Failed to fetch latest YouTube playlist video, falling back to Sanity config:', rssError);
@@ -72,6 +109,16 @@ function applyLatestSermonId(sermonId) {
   const mainPlayer = document.getElementById('mainSermonPlayer');
   if (mainPlayer && !(mainPlayer.src || '').includes(sermonId)) {
     mainPlayer.src = `https://www.youtube-nocookie.com/embed/${sermonId}?rel=0&modestbranding=1&vq=hd1080`;
+  }
+
+  // კვირის მუხლის ბარათში „მოუსმინე ქადაგებას“ იმავე ვიდეოზე მიდის,
+  // რომელიც „ბოლო ქადაგებაშია“ — ორივე აქედან მოდის, ამიტომ
+  // ბმული ყოველ კვირას თავად განახლდება.
+  const verseSermonLink = document.getElementById('sanity-weekly-verse-link');
+  if (verseSermonLink) {
+    verseSermonLink.href = `https://www.youtube.com/watch?v=${sermonId}`;
+    verseSermonLink.setAttribute('target', '_blank');
+    verseSermonLink.setAttribute('rel', 'noopener noreferrer');
   }
 }
 
@@ -202,7 +249,10 @@ function updatePageContent() {
       kidsCampVideoUrl,
       kidsCampTitle,
       kidsCampDesc1,
-      kidsCampDesc2
+      kidsCampDesc2,
+      weeklyVerseText,
+      weeklyVerseRef,
+      "weeklyVersePdf": weeklyVersePdf.asset->{url, originalFilename, size}
     },
     "events": *[_type == "registrationEvent"] | order(_createdAt asc) {
       eventId,
@@ -481,6 +531,36 @@ function updatePageContent() {
           if (siteContent.kidsCampDesc2) {
             const el = document.getElementById('sanity-kids-camp-desc2');
             if (el) el.textContent = siteContent.kidsCampDesc2;
+          }
+
+          // კვირის მუხლი (მთავარი გვერდი). თუ CMS-ში ცარიელია,
+          // გვერდზე რჩება კოდში ჩაწერილი სარეზერვო მუხლი.
+          if (siteContent.weeklyVerseText) {
+            const el = document.getElementById('sanity-weekly-verse');
+            if (el) el.textContent = siteContent.weeklyVerseText;
+          }
+          if (siteContent.weeklyVerseRef) {
+            const el = document.getElementById('sanity-weekly-verse-ref');
+            if (el) el.textContent = siteContent.weeklyVerseRef;
+          }
+          // მუხლების PDF. ბმული მარკაპში დამალულია და მხოლოდ
+          // აქ, ფაილის არსებობისას, იხსნება.
+          const pdf = siteContent.weeklyVersePdf;
+          if (pdf && pdf.url) {
+            const el = document.getElementById('sanity-weekly-verse-pdf');
+            if (el) {
+              // Sanity-ს CDN სხვა დომენია, ამიტომ download ატრიბუტს
+              // ბრაუზერი იგნორირებს — PDF ახალ ტაბში იხსნება.
+              el.href = pdf.url;
+              const meta = document.getElementById('sanity-weekly-verse-pdf-meta');
+              if (meta && pdf.size) {
+                const kb = pdf.size / 1024;
+                meta.textContent = kb >= 1024
+                  ? '· ' + (kb / 1024).toFixed(1) + ' MB'
+                  : '· ' + Math.round(kb) + ' KB';
+              }
+              el.hidden = false;
+            }
           }
         }
 

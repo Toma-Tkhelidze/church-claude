@@ -2527,31 +2527,6 @@ h2 {
 
     .welcome-row .next-service .ns-title { font-size: clamp(1.6rem, 2.2vw, 2rem); }
 
-/* სათაური ბმულია — შესაბამისი მსახურების გვერდზე გადადის (მისამართი script.js-შია) */
-.next-service .ns-title-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    color: inherit;
-    text-decoration: none;
-    transition: color 0.3s, gap 0.3s;
-}
-
-.next-service .ns-title-link:hover {
-    color: var(--gold);
-    gap: 18px;
-}
-
-.next-service .ns-title-arrow {
-    font-size: 0.6em;
-    color: var(--gold);
-    opacity: 0.75;
-    transition: opacity 0.3s;
-}
-
-.next-service .ns-title-link:hover .ns-title-arrow {
-    opacity: 1;
-}
 }
 
 /* ── მეორე ბანერი: მომდევნო მსახურება ──────────────────────────────── */
@@ -2608,6 +2583,32 @@ h2 {
     color: var(--white);
     font-family: 'FiraGoBold', sans-serif !important;
     line-height: 1.2;
+}
+
+/* სათაური ბმულია — შესაბამისი მსახურების გვერდზე გადადის (მისამართი script.js-შია) */
+.next-service .ns-title-link {
+display: inline-flex;
+align-items: center;
+gap: 12px;
+color: inherit;
+text-decoration: none;
+transition: color 0.3s, gap 0.3s;
+}
+
+.next-service .ns-title-link:hover {
+color: var(--gold);
+gap: 18px;
+}
+
+.next-service .ns-title-arrow {
+font-size: 0.6em;
+color: var(--gold);
+opacity: 0.75;
+transition: opacity 0.3s;
+}
+
+.next-service .ns-title-link:hover .ns-title-arrow {
+opacity: 1;
 }
 
 /* აღწერითი ხაზი — ბანერის p-ის ფონტი და ზომა */
@@ -2719,44 +2720,526 @@ a.next-service .ns-where, .next-service a.ns-where {
     100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   მობილური და მცირე ეკრანები: ორი ბარათი ერთდება
+
+   ვიწრო ეკრანზე ორი ცალკეული ბარათი ერთმანეთის ქვეშ ზედმეტად გრძელი
+   გამოდიოდა (857px + 427px). აქ თავად რიგი ხდება ერთი ბარათი, ბანერი და
+   მისი კონტეინერი კი ყუთს აღარ ქმნიან (display: contents) — ასე ტექსტი,
+   ამთვლელი და განრიგი ერთი ბარათის პირდაპირი შვილები ხდებიან და
+   თანმიმდევრობას თავისუფლად ვაწყობთ: მისალმება → ამთვლელი → განრიგი.
+   ────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 991px) {
     .welcome-row {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+
+        width: auto;
+        margin: -60px 16px -40px;
+        padding: 30px 22px;
+
+        background: rgba(170, 149, 79, 0.94);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        color: var(--white);
+
+        /* გამოჩენა ახლა რიგზეა — ბანერი ყუთს აღარ ქმნის */
+        opacity: 0;
+        transform: translateY(40px);
+        pointer-events: none;
+        transition:
+            opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* ერთ სვეტში ბანერს ისევ ორსვეტიანი შიგთავსი უბრუნდება */
+    .welcome-row.is-revealed {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* ქვემოთ !important გვჭირდება: style.css-ში ≤768px-ზე და ≤480px-ზე
+       არის ზოგადი „Forced Flex/Grid Collapse“ წესი, რომელიც
+       .welcome-container-ს და .schedule-grid-ს display: flex !important-ს აძლევს. */
+    .welcome-row > .welcome-banner.floating-banner,
     .welcome-row .welcome-container {
-        grid-template-columns: 1.2fr 1.8fr;
-        gap: 50px;
+        display: contents !important;
+    }
+
+    .welcome-row .welcome-text-block { order: 1; }
+    .welcome-row .next-service       { order: 2; }
+    .welcome-row .schedule-grid      { order: 3; }
+
+    /* — მისალმება — */
+    .welcome-row .welcome-text-block .subtitle {
+        font-size: 13px !important;
+        letter-spacing: 2px !important;
+        margin-bottom: 6px;
+    }
+
+    .welcome-row .welcome-text-block h2 {
+        font-size: clamp(1.5rem, 6.5vw, 2rem);
+        margin-bottom: 10px;
+    }
+
+    .welcome-row .welcome-text-block p {
+        font-size: 0.95rem;
+        margin-bottom: 0;
+    }
+
+    /* — ამთვლელი: ბარათში ჩაშენებული მუქი ველი — */
+    .welcome-row .next-service {
+        padding: 20px 18px;
+        border-radius: 12px;
+        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+
+        /* გამოჩენას რიგი უძღვება, ცალკე აღარ ანიმირდება */
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+        transition: none;
+    }
+
+    .welcome-row .next-service .ns-eyebrow {
+        font-size: 13px;
+        letter-spacing: 2px;
+        margin-bottom: 6px;
+    }
+
+    .welcome-row .next-service .ns-title {
+        font-size: 1.35rem;
+        margin-bottom: 4px;
+    }
+
+    /* ვიწრო ეკრანზე სათაური ეხვევა; ისარი ბოლო სიტყვას უნდა გაჰდეს,
+       არა მარჯვენა კიდეში მოწყვეტილად. */
+    .welcome-row .next-service .ns-title-link {
+        display: inline;
+    }
+
+    .welcome-row .next-service .ns-title-arrow {
+        margin-left: 8px;
+    }
+
+    .welcome-row .next-service .ns-when {
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+
+    .welcome-row .next-service .ns-count {
+        gap: 8px;
+        padding: 14px 0;
+    }
+
+    .welcome-row .next-service .ns-unit strong { font-size: 1.7rem; }
+    .welcome-row .next-service .ns-unit em { margin-top: 6px; }
+    .welcome-row .next-service .ns-sep { font-size: 1.4rem; }
+
+    .welcome-row .next-service .ns-where {
+        margin-top: 16px;
+        font-size: 0.88rem;
+    }
+
+    /* — განრიგი: კომპაქტური სია პატარა ციფერბლატებით — */
+    .welcome-row .schedule-grid {
+        display: block !important;
+        gap: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .welcome-row .schedule-item {
+        display: grid;
+        grid-template-columns: 26px auto 1fr;
+        align-items: center;
+        column-gap: 12px;
+        row-gap: 2px;
+        text-align: left;
+        padding: 12px 0;
+        transform: none;
+    }
+
+    .welcome-row .schedule-item + .schedule-item {
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .welcome-row .schedule-item:hover { transform: none; }
+    .welcome-row .schedule-item:hover .clock-wrap { transform: none; }
+
+    .welcome-row .clock-wrap {
+        grid-row: span 2;
+        width: 26px;
+        height: 26px;
+        margin-bottom: 0;
+    }
+
+    .welcome-row .schedule-item h3 {
+        grid-column: 2;
+        font-size: 1.05rem;
+        margin: 0;
+    }
+
+    .welcome-row .schedule-day {
+        grid-column: 3;
+        margin: 0;
+        font-size: 0.82rem;
+        letter-spacing: 0.5px;
+    }
+
+    .welcome-row .schedule-label {
+        grid-column: 2 / -1;
+        margin-top: 0;
+        font-size: 0.68rem;
+        letter-spacing: 1px;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 560px) {
     .welcome-row {
-        margin-top: -20px;
-        margin-bottom: -20px;
-        padding: 0 14px;
-        gap: 16px;
+        margin-left: 12px;
+        margin-right: 12px;
+        padding: 26px 18px;
+        gap: 20px;
     }
 
-    .welcome-row .welcome-container {
-        grid-template-columns: 1fr;
-        gap: 35px;
-    }
-
-    .welcome-row > .welcome-banner.floating-banner,
-    .next-service {
-        padding: 40px 25px;
-    }
+    .welcome-row .next-service .ns-unit strong { font-size: 1.5rem; }
+    .welcome-row .next-service .ns-count { gap: 6px; }
 }
 
 @media (max-width: 480px) {
     .welcome-row {
-        margin-top: 0;
+        margin-top: -20px;
+        margin-bottom: -20px;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .ns-live-dot { animation: none; }
-    .next-service { transition: none; }
+    .next-service,
+    .welcome-row { transition: none; }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   მობილურზე კვირის განრიგი ერთხელ ჩანს
+
+   „ბოლო ქადაგების“ ქვემოთ იგივე სამი დრო მეორდებოდა, რაც ზემოთ,
+   მისასალმებელ ბარათშია. ვიწრო ეკრანზე ეს მხოლოდ ზედმეტ სქროლს ქმნის,
+   ამიტომ იქ განრიგი მხოლოდ ბარათში რჩება. დესკტოპზე ორივე ჩანს.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 991px) {
+    .week-schedule-title,
+    .week-schedule {
+        display: none !important;
+    }
+
+    /* .info-grid-container აქ flex-ია align-items: start-ით, ამიტომ სვეტი
+       შიგთავსის მიხედვით იზომებოდა — სიგანეს განრიგის სია
+       აძლევდა. სიის დამალვის შემდეგ სვეტი ვიდეოს ზომაზე იკეცებოდა,
+       ამიტომ სიგანეს პირდაპირ ვუთითებთ — ვიდეო სრულ სვეტს იკავებს. */
+    .info-grid-container .right-column {
+        width: 100%;
+    }
+
+    /* ვიდეო სვეტში ბოლო ხილული ელემენტია — განრიგისთვის
+       დატოვებული ქვედა დაშორება აღარ სცილდება */
+    .info-grid-container .right-column .video-placeholder {
+        margin-bottom: 0;
+    }
+}
+
+/* ==========================================================================
+   კვირის მუხლი და ლოცვითი საჭიროება
+   მისასალმებელი ვიდეოს (ოქროსფერი) და კონტაქტის (მუქი) სექციებს შორის —
+   ღია ფონი სუნთქვის საშუალებას აძლევს ორივეს.
+   ========================================================================== */
+.weekly-section {
+    background: var(--bg-light);
+    padding: 100px 20px;
+}
+
+.weekly-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.weekly-head {
+    max-width: 620px;
+    margin: 0 auto 60px;
+    text-align: center;
+}
+
+.weekly-head h2 {
+    font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+    line-height: 1.25;
+    color: var(--dark-900);
+    margin: 0 0 14px;
+}
+
+.weekly-head p {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.8;
+}
+
+.weekly-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 30px;
+    align-items: stretch;
+}
+
+/* ── კვირის მუხლი: მუქი ბარათი ოქროს აქცენტით ────────────────────────── */
+.verse-card {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    background: var(--dark-900);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 44px clamp(26px, 3vw, 44px);
+    box-sizing: border-box;
+}
+
+.verse-eyebrow,
+.prayer-eyebrow {
+    display: block;
+    font-family: 'FiraGOMediumItalic', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 20px;
+}
+
+.verse-text {
+    position: relative;
+    margin: 0;
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+    line-height: 1.75;
+    color: var(--white);
+    font-family: 'BPGglaho', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
+}
+
+.verse-text::before {
+    content: "„";
+    color: var(--gold);
+}
+
+.verse-text::after {
+    content: "“";
+    color: var(--gold);
+}
+
+.verse-ref {
+    margin-top: 20px;
+    color: var(--gold);
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+}
+
+/* მუხლების PDF — მითითების ქვევით, ოქროს ჩარჩოში */
+.verse-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    align-self: flex-start;
+    margin-top: 22px;
+    padding: 11px 18px;
+    border: 1px solid rgba(170, 149, 79, 0.45);
+    border-radius: 999px;
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.verse-pdf[hidden] { display: none; }
+
+.verse-pdf:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--dark-900);
+}
+
+.verse-pdf i { font-size: 1.05em; }
+
+.verse-pdf-meta {
+    font-size: 0.78em;
+    opacity: 0.7;
+}
+
+.verse-sermon-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 28px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.92rem;
+    transition: color 0.3s, gap 0.3s;
+}
+
+.verse-sermon-link:hover {
+    color: var(--gold);
+    gap: 14px;
+}
+
+.verse-sermon-link i {
+    font-size: 0.75em;
+    color: var(--gold);
+}
+
+/* ── ლოცვითი საჭიროება: ღია ბარათი ───────────────────────────────────── */
+.prayer-card {
+    background: var(--white);
+    border: 1px solid #e8e4d8;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 44px clamp(26px, 3vw, 44px);
+    box-sizing: border-box;
+}
+
+.prayer-card h3 {
+    margin: 0 0 12px;
+    font-size: clamp(1.3rem, 2.4vw, 1.7rem);
+    line-height: 1.3;
+    color: var(--dark-900);
+}
+
+.prayer-note {
+    margin: 0 0 26px;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: var(--text-soft);
+}
+
+.prayer-card textarea,
+.prayer-card input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 16px;
+    border: 1px solid #ddd7c6;
+    border-radius: var(--radius-md);
+    background: #fbfaf6;
+    color: var(--dark-900);
+    font-family: 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
+    font-size: 0.98rem;
+    line-height: 1.7;
+    resize: vertical;
+    transition: border-color 0.3s;
+}
+
+.prayer-card textarea:focus,
+.prayer-card input[type="text"]:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.prayer-card input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.prayer-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.prayer-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    font-size: 0.92rem;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+
+.prayer-check input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+
+.prayer-error {
+    margin: 16px 0 0;
+    color: #c0392b;
+    font-size: 0.9rem;
+}
+
+.prayer-submit {
+    margin-top: 24px;
+    background: var(--dark-900);
+    color: var(--white);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.prayer-submit:hover {
+    background: var(--gold);
+    color: var(--dark-900);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.prayer-done {
+    margin: 0;
+    padding: 22px 24px;
+    border-radius: var(--radius-md);
+    background: rgba(170, 149, 79, 0.12);
+    color: #6c5c26;
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+/* სკრინრიდერისთვის დარჩენილი, თვალით უხილავი წარწერები */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 991px) {
+    .weekly-section {
+        padding: 70px 16px;
+    }
+
+    .weekly-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .weekly-head {
+        margin-bottom: 40px;
+    }
+
+    .verse-card,
+    .prayer-card {
+        padding: 32px 24px;
+    }
+}
+
+@media (max-width: 560px) {
+    .prayer-row {
+        grid-template-columns: 1fr;
+    }
 }

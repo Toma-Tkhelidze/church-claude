@@ -677,7 +677,102 @@ window.unlockBodyScroll = function() {
         return;
     }
 
-    const sync = () => panel.classList.toggle('is-revealed', banner.classList.contains('banner-visible'));
+    // მობილურზე ორივე ბარათი ერთდება და გამოცემას რიგი ატარებს,
+    // ამიტომ კლასს ორივეს ვაძლევთ — CSS აირჩევს, რომელი გამოიყენოს.
+    const row = panel.closest('.welcome-row');
+    const sync = () => {
+        const on = banner.classList.contains('banner-visible');
+        panel.classList.toggle('is-revealed', on);
+        if (row) row.classList.toggle('is-revealed', on);
+    };
     sync();
     new MutationObserver(sync).observe(banner, { attributes: true, attributeFilter: ['class'] });
+})();
+
+
+// ──────────────────────────────────────────────
+// 10. ლოცვითი საჭიროების ფორმა
+// ──────────────────────────────────────────────
+(function () {
+    const form = document.getElementById('prayerForm');
+    if (!form) return;
+
+    // ⚙️ შესავსებია ერთხელ, როცა Google Form მზად იქნება.
+    // action  — ფორმის .../formResponse მისამართი
+    // fields  — თითოეული კითხვის entry.XXXXXXXXX იდენტიფიკატორი
+    // სანამ ცარიელია, ღილაკი ელ-ფოსტას ხსნის, რომ თხოვნა მაინც მივიდეს
+    // და მომხმარებელს ცრუ დადასტურება არ დავანახოთ.
+    const PRAYER_FORM = {
+        action: '',
+        fields: {
+            message: '',
+            name: '',
+            contact: ''
+        }
+    };
+
+    const FALLBACK_EMAIL = 'info@efckutaisi.ge';
+
+    const text = document.getElementById('prayerText');
+    const name = document.getElementById('prayerName');
+    const contact = document.getElementById('prayerContact');
+    const anon = document.getElementById('prayerAnon');
+    const error = form.querySelector('.prayer-error');
+    const done = form.parentElement.querySelector('.prayer-done');
+
+    // ანონიმურ რეჟიმში სახელი და კონტაქტი ითიშება, რომ აშკარა იყოს,
+    // რას აგზავნის მომხმარებელი.
+    anon.addEventListener('change', () => {
+        const on = anon.checked;
+        name.disabled = on;
+        contact.disabled = on;
+        if (on) {
+            name.value = '';
+            contact.value = '';
+        }
+    });
+
+    const fail = message => {
+        error.textContent = message;
+        error.hidden = false;
+    };
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        error.hidden = true;
+
+        const body = text.value.trim();
+        if (body.length < 5) {
+            fail('გთხოვთ, დაწეროთ თქვენი ლოცვითი საჭიროება.');
+            text.focus();
+            return;
+        }
+
+        const who = anon.checked ? 'ანონიმური' : (name.value.trim() || 'არ მიუთითა');
+        const how = anon.checked ? '—' : (contact.value.trim() || '—');
+
+        if (!PRAYER_FORM.action || !PRAYER_FORM.fields.message) {
+            const subject = encodeURIComponent('ლოცვითი საჭიროება');
+            const mailBody = encodeURIComponent(
+                body + '\n\n— ' + who + (how !== '—' ? '\nკონტაქტი: ' + how : '')
+            );
+            window.location.href = 'mailto:' + FALLBACK_EMAIL + '?subject=' + subject + '&body=' + mailBody;
+            return;
+        }
+
+        const data = new FormData();
+        data.append(PRAYER_FORM.fields.message, body);
+        if (PRAYER_FORM.fields.name) data.append(PRAYER_FORM.fields.name, who);
+        if (PRAYER_FORM.fields.contact) data.append(PRAYER_FORM.fields.contact, how);
+
+        fetch(PRAYER_FORM.action, { method: 'POST', body: data, mode: 'no-cors' })
+            .then(() => {
+                form.style.display = 'none';
+                done.hidden = false;
+            })
+            .catch(err => {
+                console.error('ლოცვითი საჭიროების გაგზავნა ვერ მოხერხდა:', err);
+                fail('დაფიქსირდა ხარვეზი. სცადეთ მოგვიანებით ან მოგვწერეთ ' + FALLBACK_EMAIL);
+            });
+    });
 })();

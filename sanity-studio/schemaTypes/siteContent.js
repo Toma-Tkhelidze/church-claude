@@ -9,6 +9,7 @@ export const siteContent = {
     {name: 'building', title: 'სამშენებლო სექცია'},
     {name: 'youth', title: 'ახალგაზრდული ბანაკი'},
     {name: 'kids', title: 'ბავშვთა ბანაკი'},
+    {name: 'weekly', title: 'კვირის მუხლი'},
   ],
 
   fields: [
@@ -146,6 +147,37 @@ export const siteContent = {
       type: 'text',
       rows: 4,
       group: 'kids',
+    },
+
+    // ── კვირის მუხლი ──────────────────────────────
+    // მთავარ გვერდზე, მისასალმებელი ვიდეოს ქვემოთ.
+    // თუ ტექსტი ცარიელია, გვერდი კოდში ჩაწერილ სარეზერვო მუხლს აჩვენებს.
+    {
+      name: 'weeklyVerseText',
+      title: 'კვირის მუხლი',
+      description: 'მუხლის ტექსტი, რომელიც ამ კვირის ქადაგებაში განიხილეს. ბრჭყალები არ დაწეროთ — დიზაინი თავად ამატებს.',
+      type: 'text',
+      rows: 4,
+      group: 'weekly',
+      validation: Rule => Rule.max(400),
+    },
+    {
+      name: 'weeklyVerseRef',
+      title: 'მითითება',
+      description: 'მაგ. იოანე 15:5',
+      type: 'string',
+      group: 'weekly',
+      validation: Rule => Rule.max(80),
+    },
+    {
+      name: 'weeklyVersePdf',
+      title: 'მუხლების ფაილი (PDF)',
+      description:
+        'ამ ქადაგებაში გამოყენებული მუხლების თავმოყრილი სია. თუ ატვირთავთ, მთავარ გვერდზე, ' +
+        'მუხლის მითითების ქვევით გამოჩნდება გასახსნელი ბმული. თუ არ ატვირთავთ — ბმულიც არ გამოჩნდება.',
+      type: 'file',
+      group: 'weekly',
+      options: {accept: 'application/pdf'},
     },
   ],
 

@@ -180,8 +180,8 @@
         </div>
     </section>
 
-    <div class="welcome-row">
-    <section class="welcome-banner floating-banner" id="welcome" aria-label="Welcome section">
+    <div class="welcome-row" id="welcome">
+    <section class="welcome-banner floating-banner" aria-label="Welcome section">
         <div class="welcome-container">
             <div class="welcome-text-block">
                 <p class="subtitle">კეთილი იყოს თქვენი მობრძანება</p>
@@ -358,7 +358,7 @@
                 <div class="video-placeholder" role="button" tabindex="0" id="sanity-latest-sermon" aria-label="უყურეთ ბოლო ქადაგებას" data-video-id="-yhiipmNtMA">
                     <i class="fa-solid fa-play" aria-hidden="true"></i>
                 </div>
-                <h3 class="bullet-title">ამ კვირაში</h3>
+                <h3 class="bullet-title week-schedule-title">ამ კვირაში</h3>
                 <ul class="week-schedule" aria-label="Weekly schedule">
                     <li><strong>კვირა 11:00</strong><span>საკვირაო ღვთისმსახურება</span></li>
                     <li><strong>შაბათი 16:00</strong><span>ახალგაზრდული მსახურება</span></li>
@@ -375,6 +375,76 @@
             </div>
             <h2 class="cursive-text">კეთილი იყოს თქვენი მობრძანება!</h2>
             <p>უყურეთ სპეციალურ მისასალმებელ ვიდეოს ჩვენი უფროსი პასტორი<br><strong>სპარტაკ ჭანკვეტაძისგან.</strong></p>
+        </div>
+    </section>
+
+    <!-- ── კვირის მუხლი და ლოცვითი საჭიროება ──────────────────────────── -->
+    <section class="weekly-section" aria-label="კვირის მუხლი და ლოცვითი საჭიროება">
+        <div class="weekly-container">
+
+            <div class="weekly-head">
+                <span class="grid-uppertitle">ერთი წუთი სიჩუმისთვის</span>
+                <h2>კვირის მუხლი და ლოცვა</h2>
+                <p>წაიღე ერთი მუხლი ამ კვირისთვის — ან მოგვწერე, რაზე გინდა, რომ ვილოცოთ შენთვის.</p>
+            </div>
+
+            <div class="weekly-grid">
+
+                <!-- კვირის მუხლი (ტექსტს Sanity ცვლის; აქ სარეზერვო ვარიანტია) -->
+                <figure class="verse-card">
+                    <span class="verse-eyebrow">კვირის მუხლი</span>
+                    <blockquote class="verse-text" id="sanity-weekly-verse">უფალი არის ჩემი მწყემსი, არაფერი მომაკლდება.</blockquote>
+                    <figcaption class="verse-ref" id="sanity-weekly-verse-ref">ფსალმუნი 23:1</figcaption>
+
+                    <!-- ქადაგების მუხლების PDF — ჩანს მხოლოდ იმ შემთხვევაში,
+                         როცა Sanity-ში ფაილია ატვირთული -->
+                    <a class="verse-pdf" id="sanity-weekly-verse-pdf" href="#" hidden
+                       target="_blank" rel="noopener noreferrer">
+                        <i class="fa-regular fa-file-pdf" aria-hidden="true"></i>
+                        <span class="verse-pdf-label">მუხლების სია (PDF)</span>
+                        <span class="verse-pdf-meta" id="sanity-weekly-verse-pdf-meta"></span>
+                    </a>
+                    <a class="verse-sermon-link" id="sanity-weekly-verse-link" href="pages/sermons.html">
+                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                        <span>მოუსმინე ქადაგებას</span>
+                    </a>
+                </figure>
+
+                <!-- ლოცვითი საჭიროება -->
+                <div class="prayer-card">
+                    <span class="prayer-eyebrow">ლოცვითი საჭიროება</span>
+                    <h3>რაზე ვილოცოთ შენთვის?</h3>
+                    <p class="prayer-note">ჩვენი სალოცავი გუნდი ყოველ კვირას ლოცულობს მიღებულ თხოვნებზე. თქვენი თხოვნა კონფიდენციალურია.</p>
+
+                    <form id="prayerForm" novalidate>
+                        <label class="visually-hidden" for="prayerText">ლოცვითი საჭიროება</label>
+                        <textarea id="prayerText" rows="4" maxlength="1200" required
+                            placeholder="დაწერეთ მოკლედ, რაზეც გსურთ, რომ ვილოცოთ."></textarea>
+
+                        <div class="prayer-row">
+                            <label class="visually-hidden" for="prayerName">სახელი</label>
+                            <input type="text" id="prayerName" maxlength="80" placeholder="სახელი (სურვილისამებრ)">
+
+                            <label class="visually-hidden" for="prayerContact">კონტაქტი</label>
+                            <input type="text" id="prayerContact" maxlength="120" placeholder="ტელეფონი ან ელ-ფოსტა (სურვილისამებრ)">
+                        </div>
+
+                        <label class="prayer-check">
+                            <input type="checkbox" id="prayerAnon">
+                            <span>ანონიმურად გავაგზავნო</span>
+                        </label>
+
+                        <p class="prayer-error" role="alert" hidden></p>
+
+                        <button type="submit" class="btn prayer-submit">გაგზავნა</button>
+                    </form>
+
+                    <p class="prayer-done" role="status" hidden>
+                        მადლობა. თქვენი თხოვნა მიღებულია — ჩვენ ვილოცებთ.
+                    </p>
+                </div>
+
+            </div>
         </div>
     </section>
 
