@@ -3446,9 +3446,10 @@ a.next-service .ns-where, .next-service a.ns-where {
     box-shadow: 0 24px 52px rgba(25, 23, 19, 0.16);
 }
 
-/* ორზე მეტი ღონისძიებისას მხარეები ენაცვლება — რიტმი ჩნდება
-   და სია ერთფეროვან სვეტად აღარ იკითხება */
-.event-promo:nth-child(even) .event-promo-media { order: 2; }
+/* სურათის გარეშე სვეტები აზრს კარგავს: ტექსტი მთელ სიგანეს იკავებს */
+.event-promo.is-textonly {
+    grid-template-columns: 1fr;
+}
 
 .event-promo-media {
     display: block;
@@ -3565,12 +3566,10 @@ a.next-service .ns-where, .next-service a.ns-where {
 
     .events-promo-head { margin-bottom: 32px; }
 
-    /* ვიწრო ეკრანზე სურათი ზემოთ გადადის, მხარეების მონაცვლეობა ითიშება */
+    /* ვიწრო ეკრანზე სვეტები ვერ ეტევა — სურათი ტექსტს ზემოთ გადაუდგება */
     .event-promo {
         grid-template-columns: 1fr;
     }
-
-    .event-promo:nth-child(even) .event-promo-media { order: 0; }
 
     .event-promo-media {
         min-height: 0;

@@ -193,9 +193,12 @@ function renderOpenEvents(events) {
   const cards = open.map(evt => {
     const anchor = evt.eventId ? '#' + encodeURIComponent(evt.eventId) : '';
     const metaIcon = evt.eventId === 'conference' ? 'fa-location-dot' : 'fa-users';
+    // სურათის გარეშე ბარათი ერთსვეტიანი ხდება — თორემ ტექსტი ვიწრო სვეტში
+    // იკუმშებოდა და გვერდით ცარიელი ადგილი რჩებოდა.
     const media = evt.imageUrl
       ? `<span class="event-promo-media"><img src="${escapeHtml(evt.imageUrl)}" alt="" loading="lazy"></span>`
       : '';
+    const layoutClass = evt.imageUrl ? '' : ' is-textonly';
     const date = evt.dateText
       ? `<span><i class="fa-regular fa-calendar" aria-hidden="true"></i>${escapeHtml(evt.dateText)}</span>`
       : '';
@@ -206,7 +209,7 @@ function renderOpenEvents(events) {
       ? `<p class="event-promo-text">${escapeHtml(evt.description)}</p>`
       : '';
     return `
-      <a class="event-promo" href="pages/registration.html${anchor}">
+      <a class="event-promo${layoutClass}" href="pages/registration.html${anchor}">
         ${media}
         <span class="event-promo-body">
           <span class="event-promo-badge">
