@@ -168,6 +168,63 @@
             gap: 25px;
         }
 
+        /* სათადარიგო შეტყობინება — სია მხოლოდ Sanity-დან მოდის,
+           ამიტომ მისი ჩავარდნისას გვერდი ცარიელი აღარ რჩება */
+        .series-fallback {
+            max-width: 960px;
+            margin: 30px auto 0;
+            padding: 70px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+            background: #fdfbf7;
+            border: 1px solid #f3eedf;
+            border-radius: var(--radius-lg);
+        }
+
+        /* [hidden]-ს display: flex გადაფარავდა */
+        .series-fallback[hidden] {
+            display: none;
+        }
+
+        .series-fallback i {
+            font-size: 2.2rem;
+            color: #aa954f;
+            opacity: 0.55;
+        }
+
+        .series-fallback-text {
+            margin: 0;
+            max-width: 420px;
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .series-fallback-btn {
+            margin-top: 4px;
+            padding: 12px 30px;
+            border: 1px solid #aa954f;
+            border-radius: 999px;
+            background: transparent;
+            color: #aa954f;
+            font-family: 'Noto Sans Georgian', 'Montserrat', sans-serif;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease;
+        }
+
+        .series-fallback-btn:hover {
+            background: #aa954f;
+            color: #ffffff;
+        }
+
+        .series-fallback-btn[hidden] {
+            display: none;
+        }
+
         /* სერიების ბარათის ახალი დიზაინი */
         .series-card {
             display: flex;
@@ -621,6 +678,14 @@
              თუ იგივე სათაური Sanity-შიც არსებობს — ამიტომ Studio-ში
              წაშლილი სერია აქედან ისევ ჩნდებოდა. ერთი წყარო ჯობს ორს. -->
         <div class="series-grid">
+        </div>
+
+        <!-- ჩანს მხოლოდ მაშინ, თუ სია ვერ ჩამოიტვირთა ან ცარიელია.
+             ნაგულისხმევად დამალულია, რომ ჩვეულებრივ ჩატვირთვაზე არ აციმციმდეს. -->
+        <div class="series-fallback" id="seriesFallback" hidden>
+            <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i>
+            <p class="series-fallback-text" id="seriesFallbackText"></p>
+            <button type="button" class="series-fallback-btn" id="seriesFallbackBtn">განაახლე გვერდი</button>
         </div>
     </section>
 

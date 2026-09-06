@@ -104,6 +104,27 @@ function fetchLatestPlaylistVideoId() {
     .finally(() => { if (timer) clearTimeout(timer); });
 }
 
+// ქადაგებების სია მხოლოდ Sanity-დან მოდის, ამიტომ მისი ჩავარდნისას
+// გვერდი სრულიად ცარიელი რჩებოდა. ეს ფუნქცია ხსნის სათადარიგო
+// შეტყობინებას — ის მხოლოდ sermons.html-ზე არსებობს.
+function showSermonsFallback(reason) {
+  const box = document.getElementById('seriesFallback');
+  if (!box) return;
+  const text = document.getElementById('seriesFallbackText');
+  const btn = document.getElementById('seriesFallbackBtn');
+  if (text) {
+    text.textContent = reason === 'empty'
+      ? 'ქადაგებები ჯერ არ არის დამატებული. მალე დაბრუნდით.'
+      : 'ქადაგებების სია ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტთან კავშირი და სცადეთ თავიდან.';
+  }
+  // ცარიელი სიის შემთხვევაში განახლება ვერაფერს შეცვლის.
+  if (btn) {
+    btn.hidden = reason === 'empty';
+    btn.onclick = () => location.reload();
+  }
+  box.hidden = false;
+}
+
 // Idempotent: safe to call from both the feed path and the Sanity path.
 function applyLatestSermonId(sermonId) {
   if (!sermonId) return;
@@ -692,7 +713,9 @@ function updatePageContent() {
         }
 
         // 3. UPDATE SERMONS (SERMONS PAGE)
-        if (sermons && sermons.length > 0) {
+        if (!sermons || sermons.length === 0) {
+          showSermonsFallback('empty');
+        } else {
           const seriesGrid = document.querySelector('.series-grid');
           if (seriesGrid) {
             // Keep static cards that are NOT in Sanity (e.g. by title)
@@ -786,7 +809,10 @@ function updatePageContent() {
         }
       }
     })
-    .catch(error => console.error('Error fetching data from Sanity:', error));
+    .catch(error => {
+      console.error('Error fetching data from Sanity:', error);
+      showSermonsFallback('error');
+    });
 }
 
 document.addEventListener('DOMContentLoaded', updatePageContent);
