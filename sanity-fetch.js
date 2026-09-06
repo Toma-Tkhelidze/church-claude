@@ -34,11 +34,18 @@ function getVideoDetails(url) {
 // გააგზავნოს. ვადა განზრახ: ახალი ქადაგება არაუმეტეს 15 წუთს დააგვიანებს.
 const SERMON_CACHE_KEY = 'efc:latest-sermon:v1';
 const SERMON_CACHE_TTL = 15 * 60 * 1000;
+// feed-ს ლოდინის ზღვარი სჭირდება: მის გარეშე დაკიდებული მოთხოვნა
+// სამუდამოდ დაუსრულებელს ტოვებდა ქადაგების ჩანაცვლების ჯაჭვს.
+const SERMON_FEED_TIMEOUT = 5000;
 
-function readCachedSermonId() {
+// ბოლო წარმატებული id ორ დონედ ინახება:
+//   fresh — 15 წუთზე ახალგაზრდა, პირდაპირ გამოიყენება;
+//   stale — ძველი, მაგრამ შენარჩუნებული, რომ feed-ის ჩავარდნისას
+//           გვერდი კოდში ჩაწერილ ძველ ვიდეოზე არ ჩამოვარდეს.
+function readCachedSermon() {
   try {
     const raw = JSON.parse(localStorage.getItem(SERMON_CACHE_KEY));
-    if (raw && raw.id && Date.now() - raw.at < SERMON_CACHE_TTL) return raw.id;
+    if (raw && raw.id) return { id: raw.id, fresh: Date.now() - raw.at < SERMON_CACHE_TTL };
   } catch (e) { /* private mode ან დაზიანებული ჩანაწერი */ }
   return null;
 }
@@ -51,8 +58,10 @@ function cacheSermonId(id) {
 }
 
 function fetchLatestPlaylistVideoId() {
-  const cached = readCachedSermonId();
-  if (cached) return Promise.resolve(cached);
+  const cached = readCachedSermon();
+  if (cached && cached.fresh) return Promise.resolve(cached.id);
+  // ჩავარდნის შემთხვევაში ბოლო ნაცნობ id-ს დავუბრუნდებით, და არა null-ს.
+  const stale = cached ? cached.id : null;
 
   const playlistId = 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A';
   // მისამართში გამანახლებელი (&t=...) განზრახ აღარ არის. ის rss2json-ს
@@ -60,7 +69,10 @@ function fetchLatestPlaylistVideoId() {
   // სერვისი საკუთარ კეშს იყენებს და ახალ ვიდეოს ბევრად უფრო ადრე ვიგებთ.
   const feedUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.youtube.com/feeds/videos.xml?playlist_id=' + playlistId)}`;
 
-  return fetch(feedUrl)
+  const controller = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = controller ? setTimeout(() => controller.abort(), SERMON_FEED_TIMEOUT) : null;
+
+  return fetch(feedUrl, controller ? { signal: controller.signal } : undefined)
     .then(res => {
       if (!res.ok) {
         // ყველაზე ხშირი 429-ია (გადაჭარბებული ლიმიტი) — ვხედავთ დიაგნოსტიკისთვის.
@@ -70,12 +82,12 @@ function fetchLatestPlaylistVideoId() {
       return res.json();
     })
     .then(rssData => {
-      if (!rssData || !rssData.items || rssData.items.length === 0) return null;
+      if (!rssData || !rssData.items || rssData.items.length === 0) return stale;
       // Find the video item with the latest pubDate
       const latestVideo = rssData.items.reduce((latest, item) => {
         return (new Date(item.pubDate) > new Date(latest.pubDate)) ? item : latest;
       }, rssData.items[0]);
-      if (!latestVideo) return null;
+      if (!latestVideo) return stale;
       let id = null;
       if (latestVideo.guid) {
         const parts = latestVideo.guid.split(':');
@@ -83,12 +95,13 @@ function fetchLatestPlaylistVideoId() {
       }
       if (!id) id = getYouTubeId(latestVideo.link);
       cacheSermonId(id);
-      return id;
+      return id || stale;
     })
     .catch(rssError => {
-      console.warn('Failed to fetch latest YouTube playlist video, falling back to Sanity config:', rssError);
-      return null;
-    });
+      console.warn('Failed to fetch latest YouTube playlist video, falling back to cache/Sanity:', rssError);
+      return stale;
+    })
+    .finally(() => { if (timer) clearTimeout(timer); });
 }
 
 // Idempotent: safe to call from both the feed path and the Sanity path.
@@ -372,7 +385,6 @@ function updatePageContent() {
         renderTeam(teamMembers);
         renderOpenEvents(events);
 
-        const latestVideoId = await latestVideoIdPromise;
         // 1. UPDATE SITECONTENT PROPERTIES
         if (siteContent) {
           // Main Title
@@ -475,23 +487,27 @@ function updatePageContent() {
             if (el) el.textContent = siteContent.buildingText2;
           }
 
-          // Latest Sermon Video ID update (uses YouTube feed if available, otherwise falls back to Sanity)
-          let sermonId = latestVideoId;
-          if (!sermonId && siteContent.latestSermonUrl) {
-            sermonId = getYouTubeId(siteContent.latestSermonUrl);
-          }
-          applyLatestSermonId(sermonId);
-
-          // Main Sermon Player falls back to the first Sanity episode only
-          // when neither the playlist feed nor latestSermonUrl gave an id.
-          if (!sermonId && sermons && sermons.length > 0) {
-            const mainPlayer = document.getElementById('mainSermonPlayer');
-            const firstEpisode = sermons[0]?.episodes?.[0];
-            const fallbackId = firstEpisode ? getYouTubeId(firstEpisode.youtubeUrl) : null;
-            if (mainPlayer && fallbackId) {
-              mainPlayer.src = `https://www.youtube-nocookie.com/embed/${fallbackId}?rel=0&modestbranding=1&vq=hd1080`;
+          // ბოლო ქადაგება: წყარო YouTube-ის feed-ია, Sanity მხოლოდ სარეზერვო.
+          // განზრახ ცალკე ჯაჭვში — feed-ის ლოდინმა დანარჩენი კონტენტის
+          // გამოჩენა არ უნდა დააყოვნოს.
+          latestVideoIdPromise.then(feedId => {
+            let sermonId = feedId;
+            if (!sermonId && siteContent.latestSermonUrl) {
+              sermonId = getYouTubeId(siteContent.latestSermonUrl);
             }
-          }
+            applyLatestSermonId(sermonId);
+
+            // Main Sermon Player falls back to the first Sanity episode only
+            // when neither the playlist feed nor latestSermonUrl gave an id.
+            if (!sermonId && sermons && sermons.length > 0) {
+              const mainPlayer = document.getElementById('mainSermonPlayer');
+              const firstEpisode = sermons[0]?.episodes?.[0];
+              const fallbackId = firstEpisode ? getYouTubeId(firstEpisode.youtubeUrl) : null;
+              if (mainPlayer && fallbackId) {
+                mainPlayer.src = `https://www.youtube-nocookie.com/embed/${fallbackId}?rel=0&modestbranding=1&vq=hd1080`;
+              }
+            }
+          });
 
           // Youth Camp (Youth Page)
           if (siteContent.youthCampVideoUrl) {

@@ -370,7 +370,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 6. VIDEO PLACEHOLDERS - ინტერაქტიული YouTube ფლეიერი და Thumbnail-ები
     // ──────────────────────────────────────────────
     const setupVideoClick = (el) => {
-        const videoId = el.getAttribute('data-video-id') || '-yhiipmNtMA';
+        // ჩაწერილი id დეპლოის დროინდელი სურათია — მას მხოლოდ მაშინ ვხედავთ,
+        // როცა YouTube-ის feed-იც და Sanity-ის სარეზერვო ველიც მიუწვდომელია.
+        // ახალი ქადაგების ატვირთვისას განახლება არ არის სავალდებულო, მაგრამ
+        // სასურველია: ის განსაზღვრავს, რას ხედავს ინკოგნიტო ვიზიტორი feed-ის ჩავარდნისას.
+        const videoId = el.getAttribute('data-video-id') || 'qj7EVIvEEhI';
         const platform = el.getAttribute('data-video-platform') || (videoId.match(/^\d+$/) ? 'vimeo' : 'youtube');
 
         if (platform === 'vimeo') {
