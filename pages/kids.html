@@ -101,6 +101,95 @@
             transform: scale(1.1);
         }
 
+        /* „კვირის დილა" — დროებითი ბლოკი მისასალმებელი ვიდეოს ადგილას.
+           min-height უტოლდება ვიდეოს 16:9 სიმაღლეს დესკტოპზე, მაგრამ ტექსტის
+           გადატანისას ბარათი იზრდება, რომ შიგთავსი არ მოიჭრას. */
+        .kids-rhythm-card {
+            width: 100%;
+            min-height: 394px;
+            background: #fdfbf7;
+            border: 1px solid #f3eedf;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(170, 149, 79, 0.02);
+            padding: 32px 34px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .kids-rhythm-eyebrow {
+            display: block;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #aa954f;
+            margin-bottom: 22px;
+        }
+
+        .kids-rhythm-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .kids-rhythm-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            position: relative;
+            padding-bottom: 16px;
+        }
+
+        .kids-rhythm-step:last-child {
+            padding-bottom: 0;
+        }
+
+        /* ოქროსფერი დამაკავშირებელი ხაზი იკონებს შორის */
+        .kids-rhythm-step:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            left: 21px;
+            top: 45px;
+            bottom: 0;
+            width: 1px;
+            background: #f0e7cf;
+        }
+
+        .kids-rhythm-icon {
+            background: rgba(170, 149, 79, 0.1);
+            width: 43px;
+            height: 43px;
+            min-width: 43px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aa954f;
+            font-size: 1.05rem;
+        }
+
+        .kids-rhythm-title {
+            display: block;
+            font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #111;
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+
+        .kids-rhythm-card .kids-rhythm-text p {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.88rem;
+            color: #666;
+            line-height: 1.55;
+            margin: 0;
+        }
+
         /* სამოტივაციო ტექსტის ბლოკი */
         .kids-motivation-text {
             font-family: 'Montserrat', sans-serif;
@@ -270,15 +359,18 @@
             align-items: center;
             justify-content: center;
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.4s ease, visibility 0s linear 0.4s;
             padding: 20px;
             box-sizing: border-box;
         }
 
         .camp-modal.modal-active {
             opacity: 1;
+            visibility: visible;
             pointer-events: auto;
+            transition: opacity 0.4s ease, visibility 0s linear 0s;
         }
 
         .modal-content-box {
@@ -433,6 +525,10 @@
                 grid-template-columns: 1fr !important;
                 gap: 40px !important;
             }
+            .kids-rhythm-card {
+                min-height: 0;
+                padding: 26px 22px;
+            }
             .team-asymmetric-layout {
                 grid-template-columns: 1fr 1fr;
             }
@@ -577,8 +673,51 @@
                     <h2 style="font-family: 'Playfair Display', serif; font-weight: 300; font-size: 2.6rem; color: #333; margin: 0 0 40px 0; padding: 0; line-height: 1.1;">რას ველოდოთ ბავშვთა მსახურებაში?</h2>
                     
                     <div class="welcome-video-section" style="margin: 0; padding: 0; background: #ffffff; width: 100%;">
-                        <div class="main-video-placeholder" role="button" tabindex="0" aria-label="უყურეთ მისასალმებელ ვიდეოს" data-video-id="FnAaUcbma58">
-                            <i class="fa-solid fa-play" aria-hidden="true"></i>
+                        <!-- დროებითი ბლოკი: მისასალმებელი ვიდეო ჯერ არ გვაქვს.
+                             ვიდეოს გაჩენისას .kids-rhythm-card ჩანაცვლდება უკან:
+                             <div class="main-video-placeholder" role="button" tabindex="0"
+                                  aria-label="უყურეთ მისასალმებელ ვიდეოს" data-video-id="VIDEO_ID">
+                                 <i class="fa-solid fa-play" aria-hidden="true"></i>
+                             </div> -->
+                        <div class="kids-rhythm-card">
+                            <span class="kids-rhythm-eyebrow">ყოველ კვირას, 11:00</span>
+                            <ol class="kids-rhythm-list">
+                                <li class="kids-rhythm-step">
+                                    <span class="kids-rhythm-icon"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i></span>
+                                    <div class="kids-rhythm-text">
+                                        <span class="kids-rhythm-title">მიღება</span>
+                                        <p>პატარას მასწავლებელი ხვდება და ჯგუფში აცილებს — მშობელი მშვიდად რჩება მსახურებაზე.</p>
+                                    </div>
+                                </li>
+                                <li class="kids-rhythm-step">
+                                    <span class="kids-rhythm-icon"><i class="fa-solid fa-music" aria-hidden="true"></i></span>
+                                    <div class="kids-rhythm-text">
+                                        <span class="kids-rhythm-title">სიმღერა და მოძრაობა</span>
+                                        <p>მხიარული საბავშვო საგალობლები, რომლებსაც ბავშვები სახლშიც მღერიან.</p>
+                                    </div>
+                                </li>
+                                <li class="kids-rhythm-step">
+                                    <span class="kids-rhythm-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+                                    <div class="kids-rhythm-text">
+                                        <span class="kids-rhythm-title">ბიბლიური ისტორია</span>
+                                        <p>სამ ჯგუფად — 3-6, 7-10 და 11-13 წლის ბავშვებისთვის, თითოეულის ენაზე.</p>
+                                    </div>
+                                </li>
+                                <li class="kids-rhythm-step">
+                                    <span class="kids-rhythm-icon"><i class="fa-solid fa-palette" aria-hidden="true"></i></span>
+                                    <div class="kids-rhythm-text">
+                                        <span class="kids-rhythm-title">ხელნაკეთობა და თამაშები</span>
+                                        <p>ხატვა, თეატრალური წარმოდგენები და აქტიური თამაშები.</p>
+                                    </div>
+                                </li>
+                                <li class="kids-rhythm-step">
+                                    <span class="kids-rhythm-icon"><i class="fa-solid fa-people-roof" aria-hidden="true"></i></span>
+                                    <div class="kids-rhythm-text">
+                                        <span class="kids-rhythm-title">მშობელთან დაბრუნება</span>
+                                        <p>მსახურების დასრულებისას ბავშვს პირადად გადავცემთ მშობელს.</p>
+                                    </div>
+                                </li>
+                            </ol>
                         </div>
                     </div>
 
@@ -729,9 +868,6 @@
             <p style="font-family: 'Montserrat', sans-serif; font-size: 0.9rem; color: #666; margin: 0 0 30px 0; text-align: left; line-height: 1.5;">გთხოვთ, ყურადღებით შეავსოთ მონაცემები საზაფხულო ბანაკზე ადგილის დასაჯავშნად.</p>
 
             <form id="campRegisterForm" novalidate>
-                <!-- ფარული ველი გუგლის ბაზისთვის -->
-                <input type="hidden" id="hiddenLeaderInput" name="entry.1880814093" value="ბანაკის რეგისტრაცია">
-
                 <div class="form-group">
                     <label for="campName">სახელი და გვარი *</label>
                     <input type="text" id="campName" name="entry.251486321" required placeholder="მაგ: გიორგი კაპანაძე">
