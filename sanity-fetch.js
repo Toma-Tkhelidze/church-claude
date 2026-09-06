@@ -901,8 +901,12 @@ function splitSermonTitle(raw, pubDate) {
   return { title: text, date: formatFeedDate(pubDate) };
 }
 
-function weeklySermonCard(item) {
+function weeklySermonCard(item, showYear) {
   const parts = splitSermonTitle(item.title, item.pubDate);
+  // ძებნისას წლები ერევა, ამიტომ თითოეულს წელს ვაწერთ.
+  const badge = showYear && item.year
+    ? `<span class="weekly-year-badge">${escapeHtml(item.year)}</span>`
+    : '';
   return `
     <button type="button" class="weekly-item" data-video-id="${escapeHtml(item.id)}">
       <span class="weekly-thumb">
@@ -912,6 +916,7 @@ function weeklySermonCard(item) {
       <span class="weekly-body">
         <span class="weekly-title">${escapeHtml(parts.title)}</span>
         <span class="weekly-date">${escapeHtml(parts.date)}</span>
+        ${badge}
       </span>
     </button>`;
 }
@@ -942,6 +947,43 @@ function renderWeeklySermons() {
   // არსებული სიების მიხედვით — ახალი წლის ჩანართი კოდის შეხების
   // გარეშე ჩნდება. SERMON_PLAYLISTS მხოლოდ სათადარიგოა.
   let currentYear = SERMON_PLAYLISTS[0].year;
+
+  const searchInput = document.getElementById('weeklySearch');
+  const searchClear = document.getElementById('weeklySearchClear');
+  const foundLine = document.getElementById('weeklyFound');
+
+  // ძებნა ყველა წელს მოიცავს, ამიტომ ცალკე საერთო ნუსხას ვინახავთ.
+  // ჩანართის სია და ძებნის შედეგი ერთმანეთს არ ცვლის — ტექსტის
+  // წაშლისთანავე არჩეულ წელს ვუბრუნდებით.
+  let allSermons = [];
+  let yearItems = [];
+
+  function query() {
+    return searchInput ? searchInput.value.trim().toLowerCase() : '';
+  }
+
+  function paint() {
+    const q = query();
+    if (searchClear) searchClear.hidden = !q;
+
+    if (!q) {
+      if (foundLine) foundLine.hidden = true;
+      list.innerHTML = yearItems.length
+        ? yearItems.map(item => weeklySermonCard(item, false)).join('')
+        : '<p class="weekly-state">ამ წლის ქადაგებები ვერ ჩაიტვირთა. სცადეთ ცოტა ხანში.</p>';
+      return;
+    }
+
+    const hits = allSermons.filter(item => (item.title || '').toLowerCase().indexOf(q) !== -1);
+    if (foundLine) {
+      // შედეგის გარეშე ხაზი ცარიელ ადგილს იკავებდა — შეტყობინება ისედაც სიაშია.
+      foundLine.hidden = !hits.length;
+      foundLine.textContent = 'ნაპოვნია ' + hits.length + ' ქადაგება ყველა წელს შორის';
+    }
+    list.innerHTML = hits.length
+      ? hits.map(item => weeklySermonCard(item, true)).join('')
+      : '<p class="weekly-state">„' + escapeHtml(searchInput.value.trim()) + '“ — ვერაფერი მოიძებნა. სცადე სხვა სიტყვა ან თარიღი.</p>';
+  }
 
   function show(playlistId, year, button) {
     tabsBox.querySelectorAll('.year-tab').forEach(b => {
@@ -975,17 +1017,25 @@ function renderWeeklySermons() {
         items = fresh.concat(items);
       }
 
-      if (!items.length) {
-        list.innerHTML = '<p class="weekly-state">ამ წლის ქადაგებები ვერ ჩაიტვირთა. სცადეთ ცოტა ხანში.</p>';
-        return;
-      }
-      list.innerHTML = items.map(weeklySermonCard).join('');
+      yearItems = items.map(item => Object.assign({ year: year }, item));
+
+      // ცოცხალმა feed-მა შეიძლება არქივში ჯერ არარსებული ქადაგება
+      // მოიტანოს — საერთო ნუსხაშიც ვასწორებთ, რომ ძებნამ იპოვოს.
+      const merged = allSermons.filter(s => s.year !== year);
+      allSermons = yearItems.concat(merged)
+        .sort((a, b) => Number(b.year) - Number(a.year));
+
+      paint();
     });
   }
 
   tabsBox.addEventListener('click', e => {
     const btn = e.target.closest('.year-tab');
-    if (btn) show(btn.getAttribute('data-playlist'), btn.getAttribute('data-year'), btn);
+    if (!btn) return;
+    // წლის არჩევა ძებნიდან გამოსვლას ნიშნავს, თორემ ჩანართი აქტიური
+    // ჩანდა და სია სულ სხვას აჩვენებდა.
+    if (searchInput && searchInput.value) searchInput.value = '';
+    show(btn.getAttribute('data-playlist'), btn.getAttribute('data-year'), btn);
   });
 
   // ქადაგება ზემოთ, უკვე არსებულ პლეერში იხსნება — ვიზიტორი საიტზე რჩება.
@@ -1002,12 +1052,37 @@ function renderWeeklySermons() {
     if (zone) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
+  if (searchInput) {
+    searchInput.addEventListener('input', paint);
+    // Escape-ით ძებნიდან გამოსვლა კლავიატურით მომუშავეს ეხმარება.
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && searchInput.value) { searchInput.value = ''; paint(); }
+    });
+  }
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      searchInput.focus();
+      paint();
+    });
+  }
+
   list.innerHTML = '<p class="weekly-state">იტვირთება…</p>';
   fetchSermonArchive().then(archive => {
     const playlists = (archive && archive.playlists && archive.playlists.length)
       ? archive.playlists
       : SERMON_PLAYLISTS;
     currentYear = playlists[0].year;
+
+    // ძებნას ყველა წელი მაშინვე სჭირდება — არქივი ისედაც ერთ ფაილშია,
+    // ამიტომ დამატებითი მოთხოვნა არ ხდება.
+    if (archive && archive.years) {
+      allSermons = playlists.reduce((acc, pl) => {
+        const stored = archive.years[pl.year];
+        if (!stored) return acc;
+        return acc.concat(stored.slice().reverse().map(item => Object.assign({ year: pl.year }, item)));
+      }, []);
+    }
 
     tabsBox.innerHTML = playlists.map((pl, i) =>
       `<button type="button" class="year-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" data-playlist="${pl.id}" data-year="${pl.year}">${pl.year}</button>`

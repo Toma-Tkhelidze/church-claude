@@ -251,6 +251,86 @@
             margin: 0;
         }
 
+        .weekly-search {
+            position: relative;
+            max-width: 480px;
+            margin: 0 auto 22px;
+            display: flex;
+            align-items: center;
+        }
+
+        .weekly-search > i {
+            position: absolute;
+            left: 18px;
+            color: #b9ab7c;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .weekly-search input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 13px 44px 13px 44px;
+            border: 1px solid #e6dcc0;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #333;
+            font-family: 'Noto Sans Georgian', 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .weekly-search input::placeholder { color: #a8a8a8; }
+
+        .weekly-search input:focus {
+            border-color: #aa954f;
+            box-shadow: 0 0 0 4px rgba(170, 149, 79, 0.12);
+        }
+
+        /* ბრაუზერის საკუთარი გასუფთავების ჯვარი ჩვენს ღილაკს ორმაგებდა */
+        .weekly-search input::-webkit-search-cancel-button { display: none; }
+
+        .weekly-search-clear {
+            position: absolute;
+            right: 8px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: #8a8a8a;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .weekly-search-clear:hover { background: #f3eedf; color: #7a6733; }
+        .weekly-search-clear[hidden] { display: none; }
+
+        .weekly-found {
+            max-width: 960px;
+            margin: 0 auto 18px;
+            text-align: center;
+            color: #7a6733;
+            font-size: 0.88rem;
+        }
+
+        .weekly-found[hidden] { display: none; }
+
+        .weekly-year-badge {
+            align-self: flex-start;
+            margin-top: 2px;
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: #f3eedf;
+            color: #7a6733;
+            font-size: 0.72rem;
+            letter-spacing: 0.4px;
+        }
+
         .year-tabs {
             max-width: 960px;
             margin: 0 auto 26px;
@@ -853,12 +933,22 @@
          (sanity-fetch.js → renderWeeklySermons). -->
     <section class="weekly-sermons-section" id="weeklySermons" aria-label="ყოველკვირეული ქადაგებები">
         <div class="weekly-sermons-head">
-            <span class="grid-uppertitle">კვირიდან კვირამდე</span>
-            <h2>ცალკეული ქადაგებები</h2>
+            <h2>ყოველკვირეული ქადაგებები</h2>
             <p>ქადაგებები, რომლებიც სერიაში არ ერთიანდება. აირჩიე წელი და მოუსმინე პირდაპირ აქ.</p>
         </div>
 
+        <div class="weekly-search">
+            <label class="visually-hidden" for="weeklySearch">მოძებნე ქადაგება სახელით</label>
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="weeklySearch" autocomplete="off"
+                placeholder="მოძებნე ქადაგება სახელით ან თარიღით…">
+            <button type="button" class="weekly-search-clear" id="weeklySearchClear" aria-label="ძებნის გასუფთავება" hidden>
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
         <div class="year-tabs" role="tablist" aria-label="წლები"></div>
+        <p class="weekly-found" id="weeklyFound" hidden></p>
         <div class="weekly-list"></div>
     </section>
 
