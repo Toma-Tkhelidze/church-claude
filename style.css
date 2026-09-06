@@ -2936,8 +2936,11 @@ a.next-service .ns-where, .next-service a.ns-where {
    ამიტომ იქ განრიგი მხოლოდ ბარათში რჩება. დესკტოპზე ორივე ჩანს.
    ────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 991px) {
+    /* განრიგი მხოლოდ იქ იმალება, სადაც ის იმავე გვერდზე მეორდება —
+       ამას სათაურზე დასმული .week-schedule-title აღნიშნავს. „მე ახალი
+       ვარ აქ“ გვერდზე ის ერთადერთი წყაროა და ხილული უნდა დარჩეს. */
     .week-schedule-title,
-    .week-schedule {
+    .week-schedule-title + .week-schedule {
         display: none !important;
     }
 
@@ -3593,3 +3596,22 @@ a.next-service .ns-where, .next-service a.ns-where {
 
 /* ღუზით მოსული ბარათი ფიქსირებულ ჰედერს არ უნდა შეეფაროს */
 .event-card { scroll-margin-top: 110px; }
+
+/* ==========================================================================
+   „მე ახალი ვარ აქ“ — გვერდითი სვეტი
+   იყენებს იმავე .bullet-title / .week-schedule / .video-placeholder
+   ელემენტებს, რაც მთავარ გვერდზეა, ინლაინ სტილების ნაცვლად.
+   ========================================================================== */
+.visit-aside {
+    padding-top: 10px;
+}
+
+.visit-aside .week-schedule {
+    margin: 0 0 40px 0;
+    list-style: none;
+}
+
+/* ვიდეო სვეტის ბოლო ელემენტია — ქვედა დაშორება ზედმეტია */
+.visit-aside .video-placeholder {
+    margin-bottom: 0;
+}
