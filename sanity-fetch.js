@@ -1123,17 +1123,23 @@ function renderResumeBar() {
   if (!unfinished) { box.hidden = true; return; }
 
   const pct = Math.min(100, Math.round(unfinished.t / unfinished.d * 100));
+  const left = Math.max(0, unfinished.d - unfinished.t);
+  const parts = splitSermonTitle(unfinished.title, '');
+
   box.hidden = false;
   box.innerHTML =
     '<span class="resume-thumb"><img src="https://img.youtube.com/vi/' + encodeURIComponent(unfinished.id) + '/mqdefault.jpg" alt="" loading="lazy"></span>' +
     '<span class="resume-body">' +
       '<span class="resume-label">განაგრძე ყურება</span>' +
-      '<span class="resume-title">' + escapeHtml(splitSermonTitle(unfinished.title, '').title || 'ბოლო ქადაგება') + '</span>' +
-      '<span class="resume-meta">გაჩერდი ' + formatWatchTime(unfinished.t) + '-ზე · ' + pct + '%</span>' +
-      '<span class="watch-progress"><span class="watch-progress-fill" style="width:' + pct + '%"></span></span>' +
+      '<span class="resume-title">' + escapeHtml(parts.title || 'ბოლო ქადაგება') + '</span>' +
+      '<span class="resume-track">' +
+        '<span class="watch-progress"><span class="watch-progress-fill" style="width:' + pct + '%"></span></span>' +
+        '<span class="resume-pct">' + pct + '%</span>' +
+      '</span>' +
+      '<span class="resume-meta">გაჩერდი <strong>' + formatWatchTime(unfinished.t) + '</strong>-ზე · დარჩა <strong>' + formatWatchTime(left) + '</strong></span>' +
     '</span>' +
     '<button type="button" class="resume-btn" data-video-id="' + escapeHtml(unfinished.id) + '">' +
-      '<i class="fa-solid fa-play" aria-hidden="true"></i>განაგრძობა' +
+      '<i class="fa-solid fa-play" aria-hidden="true"></i>გაგრძელება' +
     '</button>';
 }
 
