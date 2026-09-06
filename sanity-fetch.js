@@ -378,6 +378,44 @@ ${column.map(member => `                                <li style="padding: 10px
   }
 }
 
+// ახალგაზრდულ და ბავშვთა გვერდებზე ბანაკის ღილაკი იმავე registrationEvent-ს
+// ემორჩილება, რასაც რეგისტრაციის გვერდი — ერთხელ დახურავ, ყველგან იხურება.
+function applyCampRegistrationStatus(events) {
+  const button = document.getElementById('openCampModal');
+  if (!button) return;
+
+  const eventId = button.getAttribute('data-event');
+  if (!eventId) return;
+
+  const event = (events || []).find(e => e && e.eventId === eventId);
+  // თუ ღონისძიება Sanity-ში არ არსებობს, ღილაკს ხელს არ ვახლებთ.
+  if (!event) return;
+
+  const note = document.getElementById('campRegClosedNote');
+  const isActive = event.status === 'active';
+
+  // პირველივე გაშვებაზე ვინახავთ თავდაპირველ წარწერას, რომ ხელახლა გახსნისას
+  // ღილაკი უცვლელად დაბრუნდეს.
+  if (button.dataset.openLabel === undefined) {
+    button.dataset.openLabel = button.innerHTML;
+  }
+
+  if (isActive) {
+    button.removeAttribute('disabled');
+    button.removeAttribute('aria-disabled');
+    button.innerHTML = button.dataset.openLabel;
+    if (note) note.hidden = true;
+    return;
+  }
+
+  button.setAttribute('disabled', 'true');
+  button.setAttribute('aria-disabled', 'true');
+  const icon = button.querySelector('i');
+  button.textContent = ' რეგისტრაცია დასრულდა';
+  if (icon) button.prepend(icon);
+  if (note) note.hidden = false;
+}
+
 function updatePageContent() {
   const groqQuery = `{
     "siteContent": *[_type == "siteContent"][0]{
@@ -715,7 +753,9 @@ function updatePageContent() {
           }
         }
 
-        // 2. UPDATE EVENTS (REGISTRATION PAGE)
+        // 2. UPDATE EVENTS (REGISTRATION PAGE + CAMP PAGES)
+        applyCampRegistrationStatus(events);
+
         if (events && events.length > 0) {
           events.forEach(evt => {
             const card = document.querySelector(`.event-card[data-event="${evt.eventId}"]`);

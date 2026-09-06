@@ -372,10 +372,38 @@
             overflow: hidden;
         }
 
-        .btn-camp-premium:hover {
+        .btn-camp-premium:hover:not([disabled]) {
             background-color: #8e7a3d;
             transform: translateY(-2px);
             box-shadow: 0 15px 30px rgba(170, 149, 79, 0.4);
+        }
+
+        /* ღონისძიება Sanity-ში დახურულია */
+        .btn-camp-premium[disabled] {
+            background-color: #b8b2a2;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .camp-reg-closed-note {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #6b6455;
+            background: rgba(170, 149, 79, 0.08);
+            border-left: 3px solid #aa954f;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 16px 0 0 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            max-width: 460px;
+        }
+
+        .camp-reg-closed-note i {
+            color: #aa954f;
+            margin-top: 3px;
         }
 
         /* Modal Dialog Styles */
@@ -877,9 +905,13 @@
                         <p style="font-family: 'Montserrat', sans-serif; font-size: 0.95rem; color: #666; line-height: 1.7; margin-bottom: 25px;" id="sanity-youth-camp-desc2">
                             ბანაკში ყალიბდება მეგობრობა, რომელიც მთელი ცხოვრება გრძელდება. უყურეთ წინა წლის თიზერს და შეიგრძენით ის ემოციები, რაც ჩვენთან ერთად გელით!
                         </p>
-                        <button class="btn-camp-premium" id="openCampModal">
+                        <button class="btn-camp-premium" id="openCampModal" data-event="youth-camp">
                             <i class="fa-solid fa-tent"></i> ადგილის დაჯავშნა ბანაკში
                         </button>
+                        <p class="camp-reg-closed-note" id="campRegClosedNote" hidden>
+                            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                            <span>ამ ბანაკზე რეგისტრაცია დასრულებულია. თვალი ადევნეთ ჩვენს გვერდს — მალე გამოვაცხადებთ შემდეგ თარიღებს.</span>
+                        </p>
                     </div>
 
                 </div>
