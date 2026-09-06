@@ -31,6 +31,11 @@ function getVideoDetails(url) {
 // (ის Sanity-ში შედის), წლიური playlist = ცალკეული ყოველკვირეული
 // ქადაგებები. აქ მხოლოდ მეორეს ვკითხულობთ — პირველი რიგში მდგომი
 // მიმდინარე წელია და ბოლო ქადაგებაც იქიდან მოდის.
+// არქივის ფაილი საიტის ძირშია, გვერდები კი სხვადასხვა დონეზე დევს —
+// მისამართს თავად ამ სკრიპტის მისამართიდან ვიღებთ.
+const SCRIPT_SRC = (document.currentScript && document.currentScript.src) || '';
+const ARCHIVE_URL = (SCRIPT_SRC ? SCRIPT_SRC.slice(0, SCRIPT_SRC.lastIndexOf('/') + 1) : '') + 'data/sermon-archive.json';
+
 const SERMON_PLAYLISTS = [
   { year: '2026', id: 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A' },
   { year: '2024', id: 'PLC_n-dqgCYfVoTDhwa3nqvBb-VT6h6BBn' },
@@ -900,6 +905,21 @@ function weeklySermonCard(item) {
     </button>`;
 }
 
+// სრული სია რეპოზიტორიაშივე დევს: YouTube-ის feed მაქსიმუმ 10-15
+// ჩანაწერს აბრუნებს, 2023 წელს კი 40 ქადაგებაა. ფაილს
+// scripts/build-sermon-archive.js ადგენს.
+let archivePromise = null;
+function fetchSermonArchive() {
+  if (archivePromise) return archivePromise;
+  archivePromise = fetch(ARCHIVE_URL)
+    .then(res => (res.ok ? res.json() : null))
+    .catch(err => {
+      console.warn('ქადაგებების არქივი ვერ ჩაიტვირთა, ვრჩებით feed-ზე:', err);
+      return null;
+    });
+  return archivePromise;
+}
+
 function renderWeeklySermons() {
   const root = document.getElementById('weeklySermons');
   if (!root) return;
@@ -908,10 +928,10 @@ function renderWeeklySermons() {
   if (!tabsBox || !list) return;
 
   tabsBox.innerHTML = SERMON_PLAYLISTS.map((pl, i) =>
-    `<button type="button" class="year-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" data-playlist="${pl.id}">${pl.year}</button>`
+    `<button type="button" class="year-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" data-playlist="${pl.id}" data-year="${pl.year}">${pl.year}</button>`
   ).join('');
 
-  function show(playlistId, button) {
+  function show(playlistId, year, button) {
     tabsBox.querySelectorAll('.year-tab').forEach(b => {
       const on = b === button;
       b.classList.toggle('is-active', on);
@@ -919,20 +939,41 @@ function renderWeeklySermons() {
     });
     list.innerHTML = '<p class="weekly-state">იტვირთება…</p>';
 
-    fetchPlaylistFeed(playlistId).then(items => {
+    // მიმდინარე წელს feed-საც ვეკითხებით, რომ ახალი ქადაგება არქივის
+    // თავიდან შედგენის გარეშე გამოჩნდეს. ძველი წლები აღარ იცვლება.
+    const isCurrent = year === SERMON_PLAYLISTS[0].year;
+    const live = isCurrent ? fetchPlaylistFeed(playlistId) : Promise.resolve(null);
+
+    Promise.all([fetchSermonArchive(), live]).then(([archive, feed]) => {
+      // არქივი ქრონოლოგიურია — გვერდზე ახლიდან ძველისკენ ვაჩვენებთ.
+      const stored = (archive && archive.years && archive.years[year]) || null;
+      // თუ არქივი მიუწვდომელია, ძველ წელზეც feed-ს ვეკითხებით —
+      // არასრული სია სჯობს ცარიელს.
+      if (!stored && !feed) return fetchPlaylistFeed(playlistId).then(f => [null, f]);
+      return [stored, feed];
+    }).then(([stored, feed]) => {
       if (tabsBox.querySelector('.year-tab.is-active') !== button) return; // ვიზიტორმა სხვა წელი აირჩია
-      if (!items || !items.length) {
+
+      let items = stored ? stored.slice().reverse() : [];
+
+      if (feed && feed.length) {
+        const known = new Set(items.map(i => i.id));
+        const fresh = feed.filter(i => !known.has(i.id))
+          .sort((a, b) => feedDateValue(b.pubDate) - feedDateValue(a.pubDate));
+        items = fresh.concat(items);
+      }
+
+      if (!items.length) {
         list.innerHTML = '<p class="weekly-state">ამ წლის ქადაგებები ვერ ჩაიტვირთა. სცადეთ ცოტა ხანში.</p>';
         return;
       }
-      const sorted = items.slice().sort((a, b) => feedDateValue(b.pubDate) - feedDateValue(a.pubDate));
-      list.innerHTML = sorted.map(weeklySermonCard).join('');
+      list.innerHTML = items.map(weeklySermonCard).join('');
     });
   }
 
   tabsBox.addEventListener('click', e => {
     const btn = e.target.closest('.year-tab');
-    if (btn) show(btn.getAttribute('data-playlist'), btn);
+    if (btn) show(btn.getAttribute('data-playlist'), btn.getAttribute('data-year'), btn);
   });
 
   // ქადაგება ზემოთ, უკვე არსებულ პლეერში იხსნება — ვიზიტორი საიტზე რჩება.
@@ -950,7 +991,7 @@ function renderWeeklySermons() {
   });
 
   const first = tabsBox.querySelector('.year-tab');
-  if (first) show(first.getAttribute('data-playlist'), first);
+  if (first) show(first.getAttribute('data-playlist'), first.getAttribute('data-year'), first);
 }
 
 document.addEventListener('DOMContentLoaded', updatePageContent);
