@@ -26,82 +26,117 @@ function getVideoDetails(url) {
   return null;
 }
 
-// The newest sermon comes from the YouTube playlist feed. It is fetched
-// independently of Sanity so a slow, blocked or unreachable Sanity request
-// cannot leave the page showing a stale hardcoded video.
-// ბოლო ქადაგების id მოკლე დროით ინახება ბრაუზერში, რომ ერთი
-// ვიზიტის განმავლობაში გვერდიდან გვერდზე გადასვლამ ერთი და იგივე მოთხოვნა არ
-// გააგზავნოს. ვადა განზრახ: ახალი ქადაგება არაუმეტეს 15 წუთს დააგვიანებს.
-const SERMON_CACHE_KEY = 'efc:latest-sermon:v1';
-const SERMON_CACHE_TTL = 15 * 60 * 1000;
-// feed-ს ლოდინის ზღვარი სჭირდება: მის გარეშე დაკიდებული მოთხოვნა
-// სამუდამოდ დაუსრულებელს ტოვებდა ქადაგების ჩანაცვლების ჯაჭვს.
-const SERMON_FEED_TIMEOUT = 5000;
+// ── YouTube-ის დასაკრავი სიები ────────────────────────────────────────
+// ქადაგებები არხზე ორნაირად ლაგდება: სახელიანი playlist = სერია
+// (ის Sanity-ში შედის), წლიური playlist = ცალკეული ყოველკვირეული
+// ქადაგებები. აქ მხოლოდ მეორეს ვკითხულობთ — პირველი რიგში მდგომი
+// მიმდინარე წელია და ბოლო ქადაგებაც იქიდან მოდის.
+const SERMON_PLAYLISTS = [
+  { year: '2026', id: 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A' },
+  { year: '2024', id: 'PLC_n-dqgCYfVoTDhwa3nqvBb-VT6h6BBn' },
+  { year: '2023', id: 'PLC_n-dqgCYfVuW9J_rlhSNAdCSj6Qci2-' },
+  { year: '2022', id: 'PLC_n-dqgCYfWBOSLMaNQTs8u6eivVOnPz' }
+];
 
-// ბოლო წარმატებული id ორ დონედ ინახება:
-//   fresh — 15 წუთზე ახალგაზრდა, პირდაპირ გამოიყენება;
-//   stale — ძველი, მაგრამ შენარჩუნებული, რომ feed-ის ჩავარდნისას
-//           გვერდი კოდში ჩაწერილ ძველ ვიდეოზე არ ჩამოვარდეს.
-function readCachedSermon() {
+// feed ბრაუზერში მოკლე დროით ინახება, რომ გვერდიდან გვერდზე გადასვლამ
+// ერთი და იგივე მოთხოვნა არ გააგზავნოს. ვადა განზრახ მოკლეა: ახალი
+// ქადაგება არაუმეტეს 15 წუთს დააგვიანებს.
+const FEED_CACHE_PREFIX = 'efc:playlist:v1:';
+const FEED_CACHE_TTL = 15 * 60 * 1000;
+// ლოდინის ზღვარი: მის გარეშე დაკიდებული მოთხოვნა სამუდამოდ
+// დაუსრულებელს ტოვებდა მასზე დამოკიდებულ ჯაჭვს.
+const FEED_TIMEOUT = 5000;
+
+// ერთსა და იმავე playlist-ზე პარალელური მოთხოვნები ერთდება — მიმდინარე
+// წლის feed-ს ორი მომხმარებელი ჰყავს (ბოლო ქადაგება და კვირეული სია).
+const feedInFlight = {};
+
+// ორდონიანი კეში: fresh — პირდაპირ გამოსაყენებელი; stale — ძველი,
+// მაგრამ შენახული, რომ feed-ის ჩავარდნისას ცარიელზე არ ჩამოვვარდეთ.
+function readCachedFeed(playlistId) {
   try {
-    const raw = JSON.parse(localStorage.getItem(SERMON_CACHE_KEY));
-    if (raw && raw.id) return { id: raw.id, fresh: Date.now() - raw.at < SERMON_CACHE_TTL };
+    const raw = JSON.parse(localStorage.getItem(FEED_CACHE_PREFIX + playlistId));
+    if (raw && Array.isArray(raw.items) && raw.items.length) {
+      return { items: raw.items, fresh: Date.now() - raw.at < FEED_CACHE_TTL };
+    }
   } catch (e) { /* private mode ან დაზიანებული ჩანაწერი */ }
   return null;
 }
 
-function cacheSermonId(id) {
-  if (!id) return;
+function cacheFeed(playlistId, items) {
+  if (!items || !items.length) return;
   try {
-    localStorage.setItem(SERMON_CACHE_KEY, JSON.stringify({ id: id, at: Date.now() }));
+    localStorage.setItem(FEED_CACHE_PREFIX + playlistId, JSON.stringify({ items: items, at: Date.now() }));
   } catch (e) { /* კვოტა ან private mode */ }
 }
 
-function fetchLatestPlaylistVideoId() {
-  const cached = readCachedSermon();
-  if (cached && cached.fresh) return Promise.resolve(cached.id);
-  // ჩავარდნის შემთხვევაში ბოლო ნაცნობ id-ს დავუბრუნდებით, და არა null-ს.
-  const stale = cached ? cached.id : null;
+// rss2json-ის პასუხს მხოლოდ იმ ველებამდე ვამცირებთ, რაც საიტს სჭირდება.
+function normalizeFeedItems(rssData) {
+  if (!rssData || !Array.isArray(rssData.items)) return [];
+  return rssData.items.map(item => {
+    let id = null;
+    if (item.guid) {
+      const parts = item.guid.split(':');
+      if (parts.length >= 3) id = parts[2];
+    }
+    if (!id) id = getYouTubeId(item.link);
+    if (!id) return null;
+    return { id: id, title: item.title || '', pubDate: item.pubDate || '' };
+  }).filter(Boolean);
+}
 
-  const playlistId = 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A';
-  // მისამართში გამანახლებელი (&t=...) განზრახ აღარ არის. ის rss2json-ს
+function fetchPlaylistFeed(playlistId) {
+  const cached = readCachedFeed(playlistId);
+  if (cached && cached.fresh) return Promise.resolve(cached.items);
+  if (feedInFlight[playlistId]) return feedInFlight[playlistId];
+
+  // ჩავარდნისას ბოლო ნაცნობ სიას დავუბრუნდებით, და არა null-ს.
+  const stale = cached ? cached.items : null;
+
+  // მისამართში გამანახლებელი (&t=...) განზრახ არ არის. ის rss2json-ს
   // აიძულებდა feed-ის თავიდან დამუშავებას და იწვევდა 429-ს. მისი გარეშე
   // სერვისი საკუთარ კეშს იყენებს და ახალ ვიდეოს ბევრად უფრო ადრე ვიგებთ.
   const feedUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://www.youtube.com/feeds/videos.xml?playlist_id=' + playlistId)}`;
 
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timer = controller ? setTimeout(() => controller.abort(), SERMON_FEED_TIMEOUT) : null;
+  const timer = controller ? setTimeout(() => controller.abort(), FEED_TIMEOUT) : null;
 
-  return fetch(feedUrl, controller ? { signal: controller.signal } : undefined)
+  const request = fetch(feedUrl, controller ? { signal: controller.signal } : undefined)
     .then(res => {
       if (!res.ok) {
         // ყველაზე ხშირი 429-ია (გადაჭარბებული ლიმიტი) — ვხედავთ დიაგნოსტიკისთვის.
-        console.warn('YouTube playlist feed request failed with status', res.status);
+        console.warn('YouTube playlist feed request failed with status', res.status, playlistId);
         return null;
       }
       return res.json();
     })
     .then(rssData => {
-      if (!rssData || !rssData.items || rssData.items.length === 0) return stale;
-      // Find the video item with the latest pubDate
-      const latestVideo = rssData.items.reduce((latest, item) => {
-        return (new Date(item.pubDate) > new Date(latest.pubDate)) ? item : latest;
-      }, rssData.items[0]);
-      if (!latestVideo) return stale;
-      let id = null;
-      if (latestVideo.guid) {
-        const parts = latestVideo.guid.split(':');
-        if (parts.length >= 3) id = parts[2];
-      }
-      if (!id) id = getYouTubeId(latestVideo.link);
-      cacheSermonId(id);
-      return id || stale;
+      const items = normalizeFeedItems(rssData);
+      if (!items.length) return stale;
+      cacheFeed(playlistId, items);
+      return items;
     })
     .catch(rssError => {
-      console.warn('Failed to fetch latest YouTube playlist video, falling back to cache/Sanity:', rssError);
+      console.warn('Failed to fetch YouTube playlist', playlistId, '- falling back to cache:', rssError);
       return stale;
     })
-    .finally(() => { if (timer) clearTimeout(timer); });
+    .finally(() => {
+      if (timer) clearTimeout(timer);
+      delete feedInFlight[playlistId];
+    });
+
+  feedInFlight[playlistId] = request;
+  return request;
+}
+
+// ბოლო ქადაგება Sanity-სგან დამოუკიდებლად მოდის, რომ ნელმა ან
+// მიუწვდომელმა Sanity-ის მოთხოვნამ გვერდზე ძველი ვიდეო არ დატოვოს.
+function fetchLatestPlaylistVideoId() {
+  return fetchPlaylistFeed(SERMON_PLAYLISTS[0].id).then(items => {
+    if (!items || !items.length) return null;
+    const latest = items.reduce((a, b) => (new Date(b.pubDate) > new Date(a.pubDate) ? b : a), items[0]);
+    return latest ? latest.id : null;
+  });
 }
 
 // ქადაგებების სია მხოლოდ Sanity-დან მოდის, ამიტომ მისი ჩავარდნისას
@@ -815,4 +850,108 @@ function updatePageContent() {
     });
 }
 
+// ── ცალკეული ყოველკვირეული ქადაგებები (ქადაგებების გვერდი) ──────────
+// წლიური playlist-ებიდან. სერიები Sanity-ში რჩება — აქ მხოლოდ ის
+// ქადაგებებია, რომლებიც სერიაში არ ერთიანდება.
+
+const KA_MONTHS = [
+  'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი',
+  'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
+];
+
+// rss2json თარიღს "2026-08-31 18:17:04" სახით აბრუნებს — Date-ის
+// კონსტრუქტორს ეს ფორმატი სტანდარტულად არ აქვს, ამიტომ ხელით ვშლით.
+function formatFeedDate(pubDate) {
+  const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})/.exec(pubDate || '');
+  if (!m) return '';
+  return `${Number(m[3])} ${KA_MONTHS[Number(m[2]) - 1] || ''}, ${m[1]}`;
+}
+
+function feedDateValue(pubDate) {
+  const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})/.exec(pubDate || '');
+  return m ? Number(m[1] + m[2] + m[3]) : 0;
+}
+
+// YouTube-ზე სათაურები "ქადაგება | 30 აგვისტო, 2026" სახისაა.
+// სადაც ასე არ არის, თარიღს feed-იდან ვიღებთ.
+function splitSermonTitle(raw, pubDate) {
+  const text = (raw || '').trim();
+  const i = text.lastIndexOf('|');
+  if (i > 0) {
+    const title = text.slice(0, i).trim();
+    const date = text.slice(i + 1).trim();
+    if (title && date) return { title: title, date: date };
+  }
+  return { title: text, date: formatFeedDate(pubDate) };
+}
+
+function weeklySermonCard(item) {
+  const parts = splitSermonTitle(item.title, item.pubDate);
+  return `
+    <button type="button" class="weekly-item" data-video-id="${escapeHtml(item.id)}">
+      <span class="weekly-thumb">
+        <img src="https://img.youtube.com/vi/${encodeURIComponent(item.id)}/mqdefault.jpg" alt="" loading="lazy">
+        <span class="weekly-play" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+      </span>
+      <span class="weekly-body">
+        <span class="weekly-title">${escapeHtml(parts.title)}</span>
+        <span class="weekly-date">${escapeHtml(parts.date)}</span>
+      </span>
+    </button>`;
+}
+
+function renderWeeklySermons() {
+  const root = document.getElementById('weeklySermons');
+  if (!root) return;
+  const tabsBox = root.querySelector('.year-tabs');
+  const list = root.querySelector('.weekly-list');
+  if (!tabsBox || !list) return;
+
+  tabsBox.innerHTML = SERMON_PLAYLISTS.map((pl, i) =>
+    `<button type="button" class="year-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" data-playlist="${pl.id}">${pl.year}</button>`
+  ).join('');
+
+  function show(playlistId, button) {
+    tabsBox.querySelectorAll('.year-tab').forEach(b => {
+      const on = b === button;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    list.innerHTML = '<p class="weekly-state">იტვირთება…</p>';
+
+    fetchPlaylistFeed(playlistId).then(items => {
+      if (tabsBox.querySelector('.year-tab.is-active') !== button) return; // ვიზიტორმა სხვა წელი აირჩია
+      if (!items || !items.length) {
+        list.innerHTML = '<p class="weekly-state">ამ წლის ქადაგებები ვერ ჩაიტვირთა. სცადეთ ცოტა ხანში.</p>';
+        return;
+      }
+      const sorted = items.slice().sort((a, b) => feedDateValue(b.pubDate) - feedDateValue(a.pubDate));
+      list.innerHTML = sorted.map(weeklySermonCard).join('');
+    });
+  }
+
+  tabsBox.addEventListener('click', e => {
+    const btn = e.target.closest('.year-tab');
+    if (btn) show(btn.getAttribute('data-playlist'), btn);
+  });
+
+  // ქადაგება ზემოთ, უკვე არსებულ პლეერში იხსნება — ვიზიტორი საიტზე რჩება.
+  list.addEventListener('click', e => {
+    const item = e.target.closest('.weekly-item');
+    if (!item) return;
+    const videoId = item.getAttribute('data-video-id');
+    const player = document.getElementById('mainSermonPlayer');
+    if (!videoId || !player) return;
+    player.src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&vq=hd1080`;
+    list.querySelectorAll('.weekly-item').forEach(el => el.classList.remove('is-playing'));
+    item.classList.add('is-playing');
+    const zone = document.getElementById('playerZone');
+    if (zone) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  const first = tabsBox.querySelector('.year-tab');
+  if (first) show(first.getAttribute('data-playlist'), first);
+}
+
 document.addEventListener('DOMContentLoaded', updatePageContent);
+document.addEventListener('DOMContentLoaded', renderWeeklySermons);
