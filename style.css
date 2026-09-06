@@ -331,9 +331,18 @@ ul {
     background: rgba(17, 17, 17, 0.97);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    padding: 14px 0;
+    /* ჩამოსქროლვისას მხოლოდ შავი ზოლი ვიწროვდება — ლოგო, ტექსტი და
+       ღილაკები იმავე ზომისა რჩება. */
+    padding: 8px 0;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
+
+/* ლოგო ინლაინ ელემენტია, ამიტომ მის ქვემოთ ხაზის სიმაღლე ~8px ცარიელს
+   ტოვებდა და ზოლს ზედმეტად აყოლებდა. block-ად ქცევა თავად ლოგოს ზომას
+   არ ცვლის — მხოლოდ ამ უჩინარ ადგილს იღებს. */
+.main-header.scrolled .logo a { display: block; }
+.main-header.scrolled .logo svg,
+.main-header.scrolled .logo img { display: block; }
 
 .main-header.header-hidden {
     transform: translateY(-100%);
