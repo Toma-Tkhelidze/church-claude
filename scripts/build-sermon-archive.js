@@ -136,12 +136,29 @@ async function readPlaylist(pl, attempts = 3) {
     }
   }
 
+  const total = Object.values(years).reduce((n, v) => n + v.length, 0);
+
+  // უსაფრთხოების ზღვარი — მთავარია ავტომატური გაშვებისთვის: თუ YouTube-მა
+  // ნაკლული გვერდი დააბრუნა, სრული არქივი არ უნდა ჩავანაცვლოთ მოკლეთი.
+  // შეგნებული შემცირებისთვის: node scripts/build-sermon-archive.js --force
+  if (fs.existsSync(OUT) && !process.argv.includes('--force')) {
+    try {
+      const prev = JSON.parse(fs.readFileSync(OUT, 'utf8'));
+      const prevTotal = Object.values(prev.years || {}).reduce((n, v) => n + v.length, 0);
+      if (total < prevTotal) {
+        console.log('\nშევჩერდი: ახალ სიაში ' + total + ' ქადაგებაა, არსებულში კი ' + prevTotal +
+          '. ფაილი უცვლელი დარჩა. თუ შემცირება განზრახია — --force.');
+        process.exitCode = 1;
+        return;
+      }
+    } catch (e) { /* დაზიანებული ფაილი — უბრალოდ გადავაწერთ */ }
+  }
+
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({
     generatedAt: new Date().toISOString().slice(0, 10),
     years
   }, null, 1) + '\n');
 
-  const total = Object.values(years).reduce((n, v) => n + v.length, 0);
   console.log('\nჩაიწერა ' + path.relative(process.cwd(), OUT) + ' — სულ ' + total + ' ქადაგება');
 })();

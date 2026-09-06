@@ -1,0 +1,46 @@
+# საიტი ბოლო ქადაგებებს YouTube-ის feed-იდან იღებს, feed კი მხოლოდ
+# ბოლო 10-ს გასცემს. სრული სია data/sermon-archive.json-შია. ეს
+# სამუშაო ამ ფაილს კვირაში ერთხელ ანახლებს, რომ feed-ის ფანჯრიდან
+# გასული ქადაგებები არ დაიკარგოს.
+#
+# ხელით გაშვება: Actions → ქადაგებების არქივის განახლება → Run workflow
+
+name: ქადაგებების არქივის განახლება
+
+on:
+  schedule:
+    # ორშაბათი, 06:00 UTC — თბილისში 10:00, კვირის ქადაგების ატვირთვის შემდეგ
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sermon-archive
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: არქივის შედგენა
+        run: node scripts/build-sermon-archive.js
+
+      - name: ცვლილების ჩაწერა
+        run: |
+          if git diff --quiet -- data/sermon-archive.json; then
+            echo "ახალი ქადაგება არ არის — ცვლილება არ ჩაწერილა"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/sermon-archive.json
+          git commit -m "chore: ქადაგებების არქივის ავტომატური განახლება"
+          git push
