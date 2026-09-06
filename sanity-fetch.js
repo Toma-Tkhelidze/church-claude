@@ -856,6 +856,10 @@ function updatePageContent() {
             seriesGrid.innerHTML = '';
             sanityCards.forEach(card => seriesGrid.appendChild(card));
             uniqueStaticCards.forEach(card => seriesGrid.appendChild(card));
+
+            // ეპიზოდები ახლა გაჩნდა DOM-ში — პროგრესის ზოლი და „ნანახია“
+            // ნიშანი მათზეც უნდა დაიხატოს.
+            refreshWatchUI();
           }
         }
       }
@@ -921,6 +925,237 @@ function weeklySermonCard(item, showYear) {
     </button>`;
 }
 
+// ══ ყურების პროგრესი ═══════════════════════════════════════════════
+// ვიზიტორი ხშირად ვერ ასწრებს ქადაგების ბოლომდე მოსმენას. აქ ვინახავთ,
+// სად გაჩერდა, რომ დაბრუნებისას იქიდან გააგრძელოს. ყველაფერი მხოლოდ
+// მის ბრაუზერშია — არსად იგზავნება.
+
+const WATCH_KEY = 'efc:watch:v1';
+const WATCH_MIN_SECONDS = 15;      // ამაზე ნაკლები დაწყებად არ ითვლება
+const WATCH_DONE_RATIO = 0.92;     // ბოლო წუთებში ტიტრებია — ნანახად ჩავთვლით
+const WATCH_MAX_ENTRIES = 150;
+
+function readWatchMap() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(WATCH_KEY));
+    return (raw && typeof raw === 'object') ? raw : {};
+  } catch (e) { return {}; }
+}
+
+function writeWatchMap(map) {
+  try {
+    const ids = Object.keys(map);
+    if (ids.length > WATCH_MAX_ENTRIES) {
+      ids.sort((a, b) => (map[b].at || 0) - (map[a].at || 0))
+        .slice(WATCH_MAX_ENTRIES)
+        .forEach(id => { delete map[id]; });
+    }
+    localStorage.setItem(WATCH_KEY, JSON.stringify(map));
+  } catch (e) { /* კვოტა ან private mode */ }
+}
+
+function watchEntry(videoId) {
+  return videoId ? (readWatchMap()[videoId] || null) : null;
+}
+
+function saveWatchProgress(videoId, seconds, duration, title) {
+  if (!videoId || !duration || seconds < WATCH_MIN_SECONDS) return;
+  const map = readWatchMap();
+  const done = seconds >= duration * WATCH_DONE_RATIO;
+  const prev = map[videoId] || {};
+  map[videoId] = {
+    // დასრულებულს ნულს ვუბრუნებთ, რომ ხელახლა დაწყებისას თავიდან წავიდეს.
+    t: done ? 0 : Math.floor(seconds),
+    d: Math.floor(duration),
+    done: done,
+    title: title || prev.title || '',
+    at: Date.now()
+  };
+  writeWatchMap(map);
+}
+
+// წამები საათის სახით: 3725 → „1:02:05“
+function formatWatchTime(seconds) {
+  const s = Math.max(0, Math.floor(seconds || 0));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  const two = n => (n < 10 ? '0' : '') + n;
+  return h ? h + ':' + two(m) + ':' + two(sec) : m + ':' + two(sec);
+}
+
+// ── პლეერი ─────────────────────────────────────────────────────────
+// დროის წასაკითხად YouTube-ის IFrame API გვჭირდება. სანამ ის ჩაიტვირთება
+// (ან თუ საერთოდ ვერ ჩაიტვირთა), ვიდეო ჩვეულებრივ, src-ით იხსნება —
+// დაწყების წერტილს მაშინ URL-ის &start= გადასცემს.
+
+let ytPlayer = null;
+let ytPollTimer = null;
+let ytPendingTitle = '';
+
+function sermonFrame() { return document.getElementById('mainSermonPlayer'); }
+
+function playingVideoId() {
+  if (ytPlayer && ytPlayer.getVideoData) {
+    try { return (ytPlayer.getVideoData() || {}).video_id || null; } catch (e) { return null; }
+  }
+  return null;
+}
+
+function recordWatchNow() {
+  if (!ytPlayer || !ytPlayer.getCurrentTime || !ytPlayer.getDuration) return;
+  let t, d;
+  try { t = ytPlayer.getCurrentTime(); d = ytPlayer.getDuration(); } catch (e) { return; }
+  const id = playingVideoId();
+  if (!id || !d) return;
+  saveWatchProgress(id, t, d, ytPendingTitle);
+  refreshWatchUI();
+}
+
+function stopWatchPoll() {
+  if (ytPollTimer) { clearInterval(ytPollTimer); ytPollTimer = null; }
+}
+
+function onSermonStateChange(event) {
+  const YTS = window.YT && YT.PlayerState;
+  if (!YTS) return;
+  if (event.data === YTS.PLAYING) {
+    stopWatchPoll();
+    ytPollTimer = setInterval(recordWatchNow, 5000);
+  } else {
+    stopWatchPoll();
+    if (event.data === YTS.PAUSED) recordWatchNow();
+    if (event.data === YTS.ENDED) {
+      const id = playingVideoId();
+      let d = 0;
+      try { d = ytPlayer.getDuration(); } catch (e) { /* ignore */ }
+      if (id && d) saveWatchProgress(id, d, d, ytPendingTitle);
+      refreshWatchUI();
+      renderResumeBar();
+    }
+  }
+}
+
+// გლობალური უნდა იყოს — YouTube-ის სკრიპტი სახელით ეძებს.
+window.onYouTubeIframeAPIReady = function () {
+  if (!sermonFrame() || !window.YT || !YT.Player) return;
+  ytPlayer = new YT.Player('mainSermonPlayer', {
+    events: {
+      onReady: refreshWatchUI,
+      onStateChange: onSermonStateChange
+    }
+  });
+};
+
+/** ქადაგების გახსნა მთავარ პლეერში, შენახული წუთიდან. */
+function playSermon(videoId, title) {
+  const frame = sermonFrame();
+  if (!videoId || !frame) return;
+
+  // წინა ვიდეოს პროგრესი გადართვამდე უნდა შევინახოთ.
+  recordWatchNow();
+
+  const entry = watchEntry(videoId);
+  const start = (entry && !entry.done && entry.t > WATCH_MIN_SECONDS) ? entry.t : 0;
+  ytPendingTitle = title || (entry && entry.title) || '';
+
+  if (ytPlayer && ytPlayer.loadVideoById) {
+    ytPlayer.loadVideoById({ videoId: videoId, startSeconds: start });
+  } else {
+    frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) +
+      '?rel=0&modestbranding=1&autoplay=1&enablejsapi=1&vq=hd1080' + (start ? '&start=' + start : '');
+  }
+
+  document.querySelectorAll('.weekly-item, .episode-item').forEach(el => {
+    el.classList.toggle('is-playing', el.getAttribute('data-video-id') === videoId);
+  });
+  refreshWatchUI();
+
+  const zone = document.getElementById('playerZone');
+  if (zone) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/** ბარათებზე პროგრესის ზოლი და „ნანახია“ ნიშანი. */
+function refreshWatchUI() {
+  const map = readWatchMap();
+  document.querySelectorAll('.weekly-item, .episode-item').forEach(el => {
+    const entry = map[el.getAttribute('data-video-id')];
+    const done = !!(entry && entry.done);
+    const pct = (entry && !done && entry.d) ? Math.min(100, Math.round(entry.t / entry.d * 100)) : 0;
+
+    el.classList.toggle('is-watched', done);
+
+    let bar = el.querySelector('.watch-progress');
+    if (pct > 0) {
+      if (!bar) {
+        bar = document.createElement('span');
+        bar.className = 'watch-progress';
+        bar.innerHTML = '<span class="watch-progress-fill"></span>';
+        (el.querySelector('.weekly-thumb') || el).appendChild(bar);
+      }
+      bar.firstChild.style.width = pct + '%';
+    } else if (bar) {
+      bar.remove();
+    }
+
+    let mark = el.querySelector('.watch-done');
+    if (done && !mark) {
+      mark = document.createElement('span');
+      mark.className = 'watch-done';
+      mark.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i>ნანახია';
+      (el.querySelector('.weekly-body') || el.querySelector('.episode-title-block') || el).appendChild(mark);
+    } else if (!done && mark) {
+      mark.remove();
+    }
+  });
+}
+
+/** „განაგრძე ყურება“ — ბოლო დაუსრულებელი ქადაგება პლეერის ქვემოთ. */
+function renderResumeBar() {
+  const box = document.getElementById('resumeBar');
+  if (!box) return;
+  const map = readWatchMap();
+  const unfinished = Object.keys(map)
+    .map(id => Object.assign({ id: id }, map[id]))
+    .filter(e => !e.done && e.t > WATCH_MIN_SECONDS && e.d)
+    .sort((a, b) => (b.at || 0) - (a.at || 0))[0];
+
+  if (!unfinished) { box.hidden = true; return; }
+
+  const pct = Math.min(100, Math.round(unfinished.t / unfinished.d * 100));
+  box.hidden = false;
+  box.innerHTML =
+    '<span class="resume-thumb"><img src="https://img.youtube.com/vi/' + encodeURIComponent(unfinished.id) + '/mqdefault.jpg" alt="" loading="lazy"></span>' +
+    '<span class="resume-body">' +
+      '<span class="resume-label">განაგრძე ყურება</span>' +
+      '<span class="resume-title">' + escapeHtml(splitSermonTitle(unfinished.title, '').title || 'ბოლო ქადაგება') + '</span>' +
+      '<span class="resume-meta">გაჩერდი ' + formatWatchTime(unfinished.t) + '-ზე · ' + pct + '%</span>' +
+      '<span class="watch-progress"><span class="watch-progress-fill" style="width:' + pct + '%"></span></span>' +
+    '</span>' +
+    '<button type="button" class="resume-btn" data-video-id="' + escapeHtml(unfinished.id) + '">' +
+      '<i class="fa-solid fa-play" aria-hidden="true"></i>განაგრძობა' +
+    '</button>';
+}
+
+function initSermonWatch() {
+  if (!sermonFrame()) return;
+
+  // საიტიდან გასვლისას ბოლო წამები რომ არ დაიკარგოს.
+  window.addEventListener('pagehide', recordWatchNow);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) recordWatchNow(); });
+
+  const box = document.getElementById('resumeBar');
+  if (box) {
+    box.addEventListener('click', e => {
+      const btn = e.target.closest('.resume-btn');
+      if (btn) playSermon(btn.getAttribute('data-video-id'));
+    });
+  }
+
+  renderResumeBar();
+  refreshWatchUI();
+}
+
 // სრული სია რეპოზიტორიაშივე დევს: YouTube-ის feed მაქსიმუმ 10-15
 // ჩანაწერს აბრუნებს, 2023 წელს კი 40 ქადაგებაა. ფაილს
 // scripts/build-sermon-archive.js ადგენს.
@@ -983,6 +1218,8 @@ function renderWeeklySermons() {
     list.innerHTML = hits.length
       ? hits.map(item => weeklySermonCard(item, true)).join('')
       : '<p class="weekly-state">„' + escapeHtml(searchInput.value.trim()) + '“ — ვერაფერი მოიძებნა. სცადე სხვა სიტყვა ან თარიღი.</p>';
+    // ბარათები ახლად აიგო — ნიშნები თავიდან უნდა დაეხატოს.
+    refreshWatchUI();
   }
 
   function show(playlistId, year, button) {
@@ -1041,17 +1278,12 @@ function renderWeeklySermons() {
   });
 
   // ქადაგება ზემოთ, უკვე არსებულ პლეერში იხსნება — ვიზიტორი საიტზე რჩება.
+  // playSermon თავად აგრძელებს იქიდან, სადაც წინა ჯერზე გაჩერდა.
   list.addEventListener('click', e => {
     const item = e.target.closest('.weekly-item');
     if (!item) return;
-    const videoId = item.getAttribute('data-video-id');
-    const player = document.getElementById('mainSermonPlayer');
-    if (!videoId || !player) return;
-    player.src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&vq=hd1080`;
-    list.querySelectorAll('.weekly-item').forEach(el => el.classList.remove('is-playing'));
-    item.classList.add('is-playing');
-    const zone = document.getElementById('playerZone');
-    if (zone) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const titleEl = item.querySelector('.weekly-title');
+    playSermon(item.getAttribute('data-video-id'), titleEl ? titleEl.textContent : '');
   });
 
   if (searchInput) {
@@ -1097,3 +1329,4 @@ function renderWeeklySermons() {
 
 document.addEventListener('DOMContentLoaded', updatePageContent);
 document.addEventListener('DOMContentLoaded', renderWeeklySermons);
+document.addEventListener('DOMContentLoaded', initSermonWatch);
