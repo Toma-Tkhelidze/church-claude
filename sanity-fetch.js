@@ -1008,7 +1008,9 @@ function renderWeeklySermons() {
     }).then(([stored, feed]) => {
       if (tabsBox.querySelector('.year-tab.is-active') !== button) return; // ვიზიტორმა სხვა წელი აირჩია
 
-      let items = stored ? stored.slice().reverse() : [];
+      // არქივი უკვე ახლიდან ძველისკენაა დალაგებული — სკრიპტი მას
+      // თარიღით ალაგებს, რადგან დასაკრავი სიების რიგი ერთგვაროვანი არ არის.
+      let items = stored ? stored.slice() : [];
 
       if (feed && feed.length) {
         const known = new Set(items.map(i => i.id));
@@ -1080,7 +1082,7 @@ function renderWeeklySermons() {
       allSermons = playlists.reduce((acc, pl) => {
         const stored = archive.years[pl.year];
         if (!stored) return acc;
-        return acc.concat(stored.slice().reverse().map(item => Object.assign({ year: pl.year }, item)));
+        return acc.concat(stored.map(item => Object.assign({ year: pl.year }, item)));
       }, []);
     }
 

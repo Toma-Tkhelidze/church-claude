@@ -125,14 +125,57 @@ async function findYearPlaylists() {
   return found;
 }
 
+const KA_MONTHS = [
+  'იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი',
+  'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი'
+];
+
+/**
+ * თარიღი სათაურიდან: „ქადაგება | 30 აგვისტო, 2026“ → 2026-08-30.
+ *
+ * წელს სათაურს კი არ ვეკითხებით, არამედ დასაკრავ სიას — სამ სათაურში
+ * წელი შეცდომითაა აკრეფილი („16 ოქტომბერი, 2020“ 2022 წლის სიაშია),
+ * და სწორედ ესენი არღვევდა რიგს.
+ */
+function sermonDate(title, year) {
+  const bar = (title || '').lastIndexOf('|');
+  if (bar < 0) return null;
+  const tail = title.slice(bar + 1);
+  const day = /(\d{1,2})/.exec(tail);
+  if (!day) return null;
+  // „ააპრილი“-ს მსგავს შეცდომებს substring-შემოწმება იტანს.
+  const month = KA_MONTHS.findIndex(m => tail.indexOf(m) !== -1);
+  if (month < 0) return null;
+  const dd = String(Number(day[1])).padStart(2, '0');
+  return year + '-' + String(month + 1).padStart(2, '0') + '-' + dd;
+}
+
 async function readPlaylist(pl) {
   const items = await readPage('https://www.youtube.com/playlist?list=' + pl.id);
   const seen = new Set();
-  // დასაკრავ სიაში ვიდეოები ქრონოლოგიურად ალაგია — რიგს ვინარჩუნებთ,
-  // რადგან სათაურებში თარიღები ხანდახან შეცდომითაა აკრეფილი.
-  return items
+  const videos = items
     .filter(v => /^[A-Za-z0-9_-]{11}$/.test(v.id) && !seen.has(v.id) && seen.add(v.id))
-    .map(v => ({ id: v.id, title: v.title }));
+    .map(v => ({ id: v.id, title: v.title, date: sermonDate(v.title, pl.year) }));
+
+  // ზოგ სათაურში თარიღი საერთოდ არ წერია. ასეთს უახლოესი დათარიღებული
+  // მეზობლის თარიღს ვაძლევთ, რომ სიაში თავის ადგილას დარჩეს.
+  let last = null;
+  videos.forEach(v => { if (v.date) last = v.date; else v.sortDate = last; });
+  for (let i = videos.length - 1; i >= 0; i--) {
+    if (!videos[i].date && !videos[i].sortDate) videos[i].sortDate = videos[i + 1] ? (videos[i + 1].date || videos[i + 1].sortDate) : null;
+  }
+
+  // დასაკრავი სიების რიგი ერთგვაროვანი არ არის — ზოგი ძველიდან ახლისკენ
+  // ალაგია, ზოგი პირიქით. ამიტომ რიგს თავად ვადგენთ თარიღით.
+  return videos
+    .map((v, i) => ({ v: v, i: i }))
+    .sort((a, b) => {
+      const da = a.v.date || a.v.sortDate || '';
+      const db = b.v.date || b.v.sortDate || '';
+      if (da !== db) return db < da ? -1 : 1;
+      return a.i - b.i; // ერთი თარიღისას საწყისი რიგი რჩება
+    })
+    .map(x => ({ id: x.v.id, title: x.v.title, date: x.v.date || null }));
 }
 
 (async () => {
