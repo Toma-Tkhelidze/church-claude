@@ -1010,6 +1010,10 @@ function recordWatchNow() {
   if (!id || !d) return;
   saveWatchProgress(id, t, d, ytPendingTitle);
   refreshWatchUI();
+  // ბლოკი მიმდინარე ქადაგებას უნდა მისდევდეს. სანამ ის მხოლოდ გვერდის
+  // გახსნისას იხატებოდა, ეკრანზე შეიძლებოდა სულ სხვა ქადაგების დრო
+  // ეწერა, ვიდრე პლეერში იკვრებოდა — ციფრები ერთმანეთს არ ემთხვეოდა.
+  renderResumeBar();
 }
 
 function stopWatchPoll() {
@@ -1111,6 +1115,7 @@ function refreshWatchUI() {
 }
 
 /** „განაგრძე ყურება“ — ბოლო დაუსრულებელი ქადაგება პლეერის ქვემოთ. */
+let resumeSignature = '';
 function renderResumeBar() {
   const box = document.getElementById('resumeBar');
   if (!box) return;
@@ -1120,11 +1125,17 @@ function renderResumeBar() {
     .filter(e => !e.done && e.t > WATCH_MIN_SECONDS && e.d)
     .sort((a, b) => (b.at || 0) - (a.at || 0))[0];
 
-  if (!unfinished) { box.hidden = true; return; }
+  if (!unfinished) { box.hidden = true; resumeSignature = ''; return; }
 
   const pct = Math.min(100, Math.round(unfinished.t / unfinished.d * 100));
   const left = Math.max(0, unfinished.d - unfinished.t);
   const parts = splitSermonTitle(unfinished.title, '');
+
+  // ყოველ 5 წამში innerHTML-ის თავიდან აგება ზედმეტია — მხოლოდ მაშინ
+  // ვხატავთ, როცა რამე მართლა შეიცვალა.
+  const signature = unfinished.id + '|' + Math.floor(unfinished.t) + '|' + unfinished.d;
+  if (signature === resumeSignature && !box.hidden) return;
+  resumeSignature = signature;
 
   box.hidden = false;
   box.innerHTML =
@@ -1136,7 +1147,8 @@ function renderResumeBar() {
         '<span class="watch-progress"><span class="watch-progress-fill" style="width:' + pct + '%"></span></span>' +
         '<span class="resume-pct">' + pct + '%</span>' +
       '</span>' +
-      '<span class="resume-meta">გაჩერდი <strong>' + formatWatchTime(unfinished.t) + '</strong>-ზე · დარჩა <strong>' + formatWatchTime(left) + '</strong></span>' +
+      // სრული ხანგრძლივობაც ჩანს, რომ ციფრები პლეერს გადაუმოწმდეს.
+      '<span class="resume-meta">გაჩერდი <strong>' + formatWatchTime(unfinished.t) + '</strong>-ზე · დარჩა <strong>' + formatWatchTime(left) + '</strong> <span class="resume-total">(სულ ' + formatWatchTime(unfinished.d) + ')</span></span>' +
     '</span>' +
     '<button type="button" class="resume-btn" data-video-id="' + escapeHtml(unfinished.id) + '">' +
       '<i class="fa-solid fa-play" aria-hidden="true"></i>გაგრძელება' +
