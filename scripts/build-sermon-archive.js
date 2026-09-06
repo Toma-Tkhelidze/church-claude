@@ -7,26 +7,22 @@
  * ეს სკრიპტი დასაკრავი სიის გვერდს კითხულობს, სადაც ყველა ვიდეოა,
  * და შედეგს ერთ ფაილში ინახავს — data/sermon-archive.json.
  *
- * საიტი მერე ამ ფაილს კითხულობს: სწრაფია, სრულია და გარე სერვისზე
- * არ არის დამოკიდებული. მიმდინარე წლის ახალი ქადაგებები ისევ
- * ავტომატურად ემატება YouTube-ის feed-იდან, ამიტომ სკრიპტის ხელახლა
- * გაშვება მხოლოდ მაშინ სჭირდება, როცა ძველ წელს ცვლი ან ახალ
- * წლიურ დასაკრავ სიას ქმნი.
+ * წლიურ დასაკრავ სიებს არხზე თავად პოულობს სახელით
+ * („2026 წლის ქადაგებები“), ამიტომ ახალი წლის დაწყებისას არც კოდში
+ * და არც აქ არაფრის შეცვლა არ სჭირდება — საკმარისია, YouTube-ზე
+ * ამავე სახელით შექმნა დასაკრავი სია.
  *
  * გაშვება:  node scripts/build-sermon-archive.js
+ *           node scripts/build-sermon-archive.js --force   (შემცირების ნებართვა)
  */
 
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-// უნდა ემთხვეოდეს sanity-fetch.js-ის SERMON_PLAYLISTS-ს.
-const PLAYLISTS = [
-  { year: '2026', id: 'PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A' },
-  { year: '2024', id: 'PLC_n-dqgCYfVoTDhwa3nqvBb-VT6h6BBn' },
-  { year: '2023', id: 'PLC_n-dqgCYfVuW9J_rlhSNAdCSj6Qci2-' },
-  { year: '2022', id: 'PLC_n-dqgCYfWBOSLMaNQTs8u6eivVOnPz' }
-];
+const CHANNEL_PLAYLISTS_URL = 'https://www.youtube.com/@EFC-Kutaisi/playlists';
+// მხოლოდ წლიური სიები გვაინტერესებს; სახელიანი სერიები Sanity-შია.
+const YEAR_PLAYLIST = /^(\d{4})\s+წლის\s+ქადაგებები$/;
 
 const OUT = path.join(__dirname, '..', 'data', 'sermon-archive.json');
 
@@ -67,9 +63,8 @@ function sliceInitialData(html) {
     if (at >= 0 && html[at + k.length] === '{') { key = k; start = at; break; }
   }
   if (start < 0) throw new Error('ytInitialData ვერ მოიძებნა — YouTube-მა გვერდის სტრუქტურა შეცვალა');
-  let i = start + key.length;
   let depth = 0, inStr = false, esc = false;
-  for (; i < html.length; i++) {
+  for (let i = start + key.length; i < html.length; i++) {
     const c = html[i];
     if (inStr) {
       if (esc) esc = false;
@@ -84,35 +79,33 @@ function sliceInitialData(html) {
   throw new Error('ytInitialData დაუსრულებელია');
 }
 
-// YouTube ვიდეოს ბარათს ახლა lockupViewModel ჰქვია.
-function collectVideos(node, out) {
+// YouTube ვიდეოსა და დასაკრავი სიის ბარათს ერთნაირად — lockupViewModel — ჰქვია.
+function collectLockups(node, out) {
   if (!node || typeof node !== 'object') return out;
-  if (Array.isArray(node)) { node.forEach(n => collectVideos(n, out)); return out; }
+  if (Array.isArray(node)) { node.forEach(n => collectLockups(n, out)); return out; }
   if (node.lockupViewModel) {
     const l = node.lockupViewModel;
     const meta = l.metadata && l.metadata.lockupMetadataViewModel;
-    const title = (meta && meta.title && meta.title.content) || '';
-    if (l.contentId && /^[A-Za-z0-9_-]{11}$/.test(l.contentId)) out.push({ id: l.contentId, title: title.trim() });
+    out.push({
+      id: l.contentId || '',
+      type: l.contentType || '',
+      title: ((meta && meta.title && meta.title.content) || '').trim()
+    });
     return out;
   }
-  for (const k in node) collectVideos(node[k], out);
+  for (const k in node) collectLockups(node[k], out);
   return out;
 }
 
-// YouTube დროდადრო გვერდის სხვა ვარიანტს აბრუნებს, სადაც მონაცემები
-// სხვაგვარადაა ჩაწერილი — ერთი მცდელობა საიმედო არ არის.
-async function readPlaylist(pl, attempts = 3) {
+// YouTube დროდადრო გვერდის სხვა ვარიანტს აბრუნებს — ერთი მცდელობა საიმედო არ არის.
+async function readPage(url, attempts = 3) {
   let lastErr;
   for (let n = 1; n <= attempts; n++) {
     try {
-      const html = await get('https://www.youtube.com/playlist?list=' + pl.id);
-      const data = JSON.parse(sliceInitialData(html));
-      const found = collectVideos(data, []);
-      if (!found.length) throw new Error('ვიდეოები ვერ ამოვიცანი');
-      const seen = new Set();
-      // დასაკრავ სიაში ვიდეოები ქრონოლოგიურად ალაგია — რიგს ვინარჩუნებთ,
-      // რადგან სათაურებში თარიღები ხანდახან შეცდომითაა აკრეფილი.
-      return found.filter(v => !seen.has(v.id) && seen.add(v.id));
+      const html = await get(url);
+      const items = collectLockups(JSON.parse(sliceInitialData(html)), []);
+      if (!items.length) throw new Error('შიგთავსი ვერ ამოვიცანი');
+      return items;
     } catch (err) {
       lastErr = err;
       if (n < attempts) await new Promise(r => setTimeout(r, 1200 * n));
@@ -121,9 +114,47 @@ async function readPlaylist(pl, attempts = 3) {
   throw lastErr;
 }
 
+async function findYearPlaylists() {
+  const found = [];
+  for (const item of await readPage(CHANNEL_PLAYLISTS_URL)) {
+    const m = YEAR_PLAYLIST.exec(item.title);
+    if (m && item.id) found.push({ year: m[1], id: item.id });
+  }
+  // ახალი წელი პირველი — საიტი პირველს მიმდინარედ თვლის.
+  found.sort((a, b) => Number(b.year) - Number(a.year));
+  return found;
+}
+
+async function readPlaylist(pl) {
+  const items = await readPage('https://www.youtube.com/playlist?list=' + pl.id);
+  const seen = new Set();
+  // დასაკრავ სიაში ვიდეოები ქრონოლოგიურად ალაგია — რიგს ვინარჩუნებთ,
+  // რადგან სათაურებში თარიღები ხანდახან შეცდომითაა აკრეფილი.
+  return items
+    .filter(v => /^[A-Za-z0-9_-]{11}$/.test(v.id) && !seen.has(v.id) && seen.add(v.id))
+    .map(v => ({ id: v.id, title: v.title }));
+}
+
 (async () => {
+  let playlists;
+  try {
+    playlists = await findYearPlaylists();
+  } catch (err) {
+    console.log('არხის დასაკრავი სიები ვერ წავიკითხე — ' + err.message);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (!playlists.length) {
+    console.log('წლიური დასაკრავი სია ვერ ვიპოვე. სახელი ასეთი უნდა იყოს: „2027 წლის ქადაგებები“.');
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log('ვიპოვე ' + playlists.length + ' წლიური სია: ' + playlists.map(p => p.year).join(', ') + '\n');
+
   const years = {};
-  for (const pl of PLAYLISTS) {
+  for (const pl of playlists) {
     process.stdout.write(pl.year + ' … ');
     try {
       const videos = await readPlaylist(pl);
@@ -140,7 +171,6 @@ async function readPlaylist(pl, attempts = 3) {
 
   // უსაფრთხოების ზღვარი — მთავარია ავტომატური გაშვებისთვის: თუ YouTube-მა
   // ნაკლული გვერდი დააბრუნა, სრული არქივი არ უნდა ჩავანაცვლოთ მოკლეთი.
-  // შეგნებული შემცირებისთვის: node scripts/build-sermon-archive.js --force
   if (fs.existsSync(OUT) && !process.argv.includes('--force')) {
     try {
       const prev = JSON.parse(fs.readFileSync(OUT, 'utf8'));
@@ -157,6 +187,7 @@ async function readPlaylist(pl, attempts = 3) {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({
     generatedAt: new Date().toISOString().slice(0, 10),
+    playlists,
     years
   }, null, 1) + '\n');
 

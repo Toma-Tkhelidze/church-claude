@@ -136,8 +136,19 @@ function fetchPlaylistFeed(playlistId) {
 
 // ბოლო ქადაგება Sanity-სგან დამოუკიდებლად მოდის, რომ ნელმა ან
 // მიუწვდომელმა Sanity-ის მოთხოვნამ გვერდზე ძველი ვიდეო არ დატოვოს.
+// მიმდინარე წლის სია არქივიდან ვიცით — ახალი წლის დაწყებისას კოდის
+// შეცვლა არ სჭირდება. არქივი იმავე დომენზეა და სწრაფად პასუხობს;
+// თუ დაიგვიანა, ბოლო ქადაგებას არ ვაცდევინებთ და კოდში ჩაწერილს ვიყენებთ.
+function currentSermonPlaylistId() {
+  const fallback = SERMON_PLAYLISTS[0].id;
+  const guard = new Promise(resolve => setTimeout(() => resolve(null), 2000));
+  return Promise.race([fetchSermonArchive(), guard])
+    .then(archive => (archive && archive.playlists && archive.playlists[0] && archive.playlists[0].id) || fallback)
+    .catch(() => fallback);
+}
+
 function fetchLatestPlaylistVideoId() {
-  return fetchPlaylistFeed(SERMON_PLAYLISTS[0].id).then(items => {
+  return currentSermonPlaylistId().then(fetchPlaylistFeed).then(items => {
     if (!items || !items.length) return null;
     const latest = items.reduce((a, b) => (new Date(b.pubDate) > new Date(a.pubDate) ? b : a), items[0]);
     return latest ? latest.id : null;
@@ -927,9 +938,10 @@ function renderWeeklySermons() {
   const list = root.querySelector('.weekly-list');
   if (!tabsBox || !list) return;
 
-  tabsBox.innerHTML = SERMON_PLAYLISTS.map((pl, i) =>
-    `<button type="button" class="year-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" data-playlist="${pl.id}" data-year="${pl.year}">${pl.year}</button>`
-  ).join('');
+  // წლების ნუსხა არქივიდან მოდის, მას კი სკრიპტი თავად ადგენს არხზე
+  // არსებული სიების მიხედვით — ახალი წლის ჩანართი კოდის შეხების
+  // გარეშე ჩნდება. SERMON_PLAYLISTS მხოლოდ სათადარიგოა.
+  let currentYear = SERMON_PLAYLISTS[0].year;
 
   function show(playlistId, year, button) {
     tabsBox.querySelectorAll('.year-tab').forEach(b => {
@@ -941,7 +953,7 @@ function renderWeeklySermons() {
 
     // მიმდინარე წელს feed-საც ვეკითხებით, რომ ახალი ქადაგება არქივის
     // თავიდან შედგენის გარეშე გამოჩნდეს. ძველი წლები აღარ იცვლება.
-    const isCurrent = year === SERMON_PLAYLISTS[0].year;
+    const isCurrent = year === currentYear;
     const live = isCurrent ? fetchPlaylistFeed(playlistId) : Promise.resolve(null);
 
     Promise.all([fetchSermonArchive(), live]).then(([archive, feed]) => {
@@ -990,8 +1002,20 @@ function renderWeeklySermons() {
     if (zone) zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  const first = tabsBox.querySelector('.year-tab');
-  if (first) show(first.getAttribute('data-playlist'), first.getAttribute('data-year'), first);
+  list.innerHTML = '<p class="weekly-state">იტვირთება…</p>';
+  fetchSermonArchive().then(archive => {
+    const playlists = (archive && archive.playlists && archive.playlists.length)
+      ? archive.playlists
+      : SERMON_PLAYLISTS;
+    currentYear = playlists[0].year;
+
+    tabsBox.innerHTML = playlists.map((pl, i) =>
+      `<button type="button" class="year-tab${i === 0 ? ' is-active' : ''}" role="tab" aria-selected="${i === 0}" data-playlist="${pl.id}" data-year="${pl.year}">${pl.year}</button>`
+    ).join('');
+
+    const first = tabsBox.querySelector('.year-tab');
+    if (first) show(first.getAttribute('data-playlist'), first.getAttribute('data-year'), first);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', updatePageContent);

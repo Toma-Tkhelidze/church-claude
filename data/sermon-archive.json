@@ -1,5 +1,23 @@
 {
  "generatedAt": "2026-09-06",
+ "playlists": [
+  {
+   "year": "2026",
+   "id": "PLC_n-dqgCYfWAb2CbwumDHPRApAkcP99A"
+  },
+  {
+   "year": "2024",
+   "id": "PLC_n-dqgCYfVoTDhwa3nqvBb-VT6h6BBn"
+  },
+  {
+   "year": "2023",
+   "id": "PLC_n-dqgCYfVuW9J_rlhSNAdCSj6Qci2-"
+  },
+  {
+   "year": "2022",
+   "id": "PLC_n-dqgCYfWBOSLMaNQTs8u6eivVOnPz"
+  }
+ ],
  "years": {
   "2022": [
    {
