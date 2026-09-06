@@ -933,7 +933,11 @@ function weeklySermonCard(item, showYear) {
 const WATCH_KEY = 'efc:watch:v1';
 const WATCH_MIN_SECONDS = 15;      // ამაზე ნაკლები დაწყებად არ ითვლება
 const WATCH_DONE_RATIO = 0.92;     // ბოლო წუთებში ტიტრებია — ნანახად ჩავთვლით
-const WATCH_MAX_ENTRIES = 150;
+// ერთი ჩანაწერი ~254 ბაიტია, ბრაუზერის ლიმიტი კი ~5 MB. 1000 ჩანაწერი
+// დაახლოებით 0.24 MB-ია — ლიმიტის 5%-ზე ნაკლები. წელიწადში ~24 ქადაგებით
+// ეს ზღვარი ათწლეულებში არ მიიღწევა; ის მხოლოდ იმისთვისაა, რომ
+// დაზიანებულმა ჩანაწერმა მეხსიერება უსასრულოდ არ შეავსოს.
+const WATCH_MAX_ENTRIES = 1000;
 
 function readWatchMap() {
   try {
