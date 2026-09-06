@@ -276,7 +276,6 @@ function renderOpenEvents(events) {
   // სრული ბარათი: სურათი, სტატუსი, თარიღი, დეტალები და აღწერა —
   // იგივე, რაც რეგისტრაციის გვერდზეა, რომ ვიზიტორმა გადასვლამდე იცოდეს, რას ქანს.
   const cards = open.map(evt => {
-    const anchor = evt.eventId ? '#' + encodeURIComponent(evt.eventId) : '';
     const metaIcon = evt.eventId === 'conference' ? 'fa-location-dot' : 'fa-users';
     // სურათის გარეშე ბარათი ერთსვეტიანი ხდება — თორემ ტექსტი ვიწრო სვეტში
     // იკუმშებოდა და გვერდით ცარიელი ადგილი რჩებოდა.
@@ -293,8 +292,10 @@ function renderOpenEvents(events) {
     const text = evt.description
       ? `<p class="event-promo-text">${escapeHtml(evt.description)}</p>`
       : '';
+    // ბარათი განზრახ აღარ არის ბმული: გადასვლა მხოლოდ ღილაკით ხდება,
+    // ისიც არა სხვა გვერდზე — ფორმა აქვე იხსნება.
     return `
-      <a class="event-promo${layoutClass}" href="pages/registration.html${anchor}">
+      <div class="event-promo${layoutClass}">
         ${media}
         <span class="event-promo-body">
           <span class="event-promo-badge">
@@ -303,11 +304,11 @@ function renderOpenEvents(events) {
           <span class="event-promo-title">${escapeHtml(evt.title)}</span>
           <span class="event-promo-meta">${date}${details}</span>
           ${text}
-          <span class="event-promo-cta">
+          <button type="button" class="event-promo-cta" data-event="${escapeHtml(evt.eventId || '')}" data-title="${escapeHtml(evt.title)}">
             რეგისტრაციის გავლა <i class="fa-solid fa-arrow-right-long" aria-hidden="true"></i>
-          </span>
+          </button>
         </span>
-      </a>`;
+      </div>`;
   }).join('');
 
   mount.innerHTML = `
@@ -318,6 +319,16 @@ function renderOpenEvents(events) {
       </div>
       <div class="events-promo-list">${cards}</div>
     </div>`;
+
+  // ფორმა აქვე იხსნება — ვიზიტორი მთავარ გვერდზე რჩება.
+  mount.addEventListener('click', e => {
+    const btn = e.target.closest('.event-promo-cta');
+    if (!btn) return;
+    const eventId = btn.getAttribute('data-event');
+    if (typeof openRegistrationModal === 'function' && openRegistrationModal(eventId, btn.getAttribute('data-title'))) return;
+    // ფორმა ამ ღონისძიებისთვის აღწერილი არ არის — რეგისტრაციის გვერდი სათადარიგოა.
+    window.location.href = 'pages/registration.html' + (eventId ? '#' + encodeURIComponent(eventId) : '');
+  });
 
   mount.hidden = false;
 }
