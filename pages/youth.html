@@ -101,6 +101,95 @@
             transform: scale(1.1);
         }
 
+        /* „შეხვედრის რიტმი" — დროებითი ბლოკი მისასალმებელი ვიდეოს ადგილას.
+           min-height უტოლდება ვიდეოს 16:9 სიმაღლეს დესკტოპზე, მაგრამ ტექსტის
+           გადატანისას ბარათი იზრდება, რომ შიგთავსი არ მოიჭრას. */
+        .youth-rhythm-card {
+            width: 100%;
+            min-height: 420px;
+            background: #fdfbf7;
+            border: 1px solid #f3eedf;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(170, 149, 79, 0.02);
+            padding: 32px 34px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .youth-rhythm-eyebrow {
+            display: block;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #aa954f;
+            margin-bottom: 22px;
+        }
+
+        .youth-rhythm-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .youth-rhythm-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            position: relative;
+            padding-bottom: 16px;
+        }
+
+        .youth-rhythm-step:last-child {
+            padding-bottom: 0;
+        }
+
+        /* ოქროსფერი დამაკავშირებელი ხაზი იკონებს შორის */
+        .youth-rhythm-step:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            left: 21px;
+            top: 45px;
+            bottom: 0;
+            width: 1px;
+            background: #f0e7cf;
+        }
+
+        .youth-rhythm-icon {
+            background: rgba(170, 149, 79, 0.1);
+            width: 43px;
+            height: 43px;
+            min-width: 43px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aa954f;
+            font-size: 1.05rem;
+        }
+
+        .youth-rhythm-title {
+            display: block;
+            font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #111;
+            line-height: 1.3;
+            margin-bottom: 3px;
+        }
+
+        .youth-rhythm-card .youth-rhythm-text p {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.88rem;
+            color: #666;
+            line-height: 1.55;
+            margin: 0;
+        }
+
         /* Testimonials Section */
         .testimonials-section {
             padding: 80px 0;
@@ -303,15 +392,18 @@
             align-items: center;
             justify-content: center;
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.4s ease, visibility 0s linear 0.4s;
             padding: 20px;
             box-sizing: border-box;
         }
 
         .camp-modal.modal-active {
             opacity: 1;
+            visibility: visible;
             pointer-events: auto;
+            transition: opacity 0.4s ease, visibility 0s linear 0s;
         }
 
         .modal-content-box {
@@ -470,6 +562,10 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
+            .youth-rhythm-card {
+                min-height: 0;
+                padding: 26px 22px;
+            }
         }
     </style>
 </head>
@@ -598,8 +694,51 @@
                         <h2 style="font-family: 'Playfair Display', serif; font-weight: 300; font-size: 2.6rem; color: #333; margin: 0 0 40px 0; padding: 0; line-height: 1.1;">რას ველოდო ახალგაზრდულზე?</h2>
                         
                         <div class="welcome-video-section" style="margin: 0; padding: 0; background: #ffffff; width: 100%;">
-                            <div class="main-video-placeholder" role="button" tabindex="0" aria-label="უყურეთ მისასალმებელ ვიდეოს" data-video-id="FnAaUcbma58">
-                                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                            <!-- დროებითი ბლოკი: მისასალმებელი ვიდეო ჯერ არ გვაქვს.
+                                 ვიდეოს გაჩენისას .youth-rhythm-card ჩანაცვლდება უკან:
+                                 <div class="main-video-placeholder" role="button" tabindex="0"
+                                      aria-label="უყურეთ მისასალმებელ ვიდეოს" data-video-id="VIDEO_ID">
+                                     <i class="fa-solid fa-play" aria-hidden="true"></i>
+                                 </div> -->
+                            <div class="youth-rhythm-card">
+                                <span class="youth-rhythm-eyebrow">ყოველ შაბათს, 16:00</span>
+                                <ol class="youth-rhythm-list">
+                                    <li class="youth-rhythm-step">
+                                        <span class="youth-rhythm-icon"><i class="fa-solid fa-door-open" aria-hidden="true"></i></span>
+                                        <div class="youth-rhythm-text">
+                                            <span class="youth-rhythm-title">შეხვედრა და გაცნობა</span>
+                                            <p>ჩაი, ყავა და ახლების მიგებება — არავინ რჩება მარტო.</p>
+                                        </div>
+                                    </li>
+                                    <li class="youth-rhythm-step">
+                                        <span class="youth-rhythm-icon"><i class="fa-solid fa-music" aria-hidden="true"></i></span>
+                                        <div class="youth-rhythm-text">
+                                            <span class="youth-rhythm-title">თაყვანისცემა</span>
+                                            <p>ცოცხალი, თანამედროვე საგალობლები — ერთად ვიგალობოთ.</p>
+                                        </div>
+                                    </li>
+                                    <li class="youth-rhythm-step">
+                                        <span class="youth-rhythm-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></span>
+                                        <div class="youth-rhythm-text">
+                                            <span class="youth-rhythm-title">სწავლება</span>
+                                            <p>აქტუალური თემა, რომელიც შენს ყოველდღიურობას ეხება.</p>
+                                        </div>
+                                    </li>
+                                    <li class="youth-rhythm-step">
+                                        <span class="youth-rhythm-icon"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
+                                        <div class="youth-rhythm-text">
+                                            <span class="youth-rhythm-title">მცირე ჯგუფები</span>
+                                            <p>ღია დისკუსია, სადაც ნებისმიერი კითხვის დასმა შეიძლება.</p>
+                                        </div>
+                                    </li>
+                                    <li class="youth-rhythm-step">
+                                        <span class="youth-rhythm-icon"><i class="fa-solid fa-people-group" aria-hidden="true"></i></span>
+                                        <div class="youth-rhythm-text">
+                                            <span class="youth-rhythm-title">თამაშები და ერთად ყოფნა</span>
+                                            <p>სახალისო აქტივობები და თავისუფალი დრო მეგობრებთან.</p>
+                                        </div>
+                                    </li>
+                                </ol>
                             </div>
                         </div>
                     </div>
@@ -665,7 +804,7 @@
                 <div class="faq-container scroll-reveal">
                     
                     <div class="faq-item">
-                        <div class="faq-question">
+                        <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                             <h3>რა ასაკიდან შემიძლია შემოვუერთდე ახალგაზრდულ მსახურებას?</h3>
                             <i class="fa-solid fa-chevron-down faq-icon" aria-hidden="true"></i>
                         </div>
@@ -675,7 +814,7 @@
                     </div>
 
                     <div class="faq-item">
-                        <div class="faq-question">
+                        <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                             <h3>როდის და სად ტარდება შეხვედრები?</h3>
                             <i class="fa-solid fa-chevron-down faq-icon" aria-hidden="true"></i>
                         </div>
@@ -685,7 +824,7 @@
                     </div>
 
                     <div class="faq-item">
-                        <div class="faq-question">
+                        <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                             <h3>რა ხდება ახალგაზრდულ შეხვედრაზე?</h3>
                             <i class="fa-solid fa-chevron-down faq-icon" aria-hidden="true"></i>
                         </div>
@@ -695,7 +834,7 @@
                     </div>
 
                     <div class="faq-item">
-                        <div class="faq-question">
+                        <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                             <h3>ფასიანია თუ არა ახალგაზრდულ შეხვედრებზე დასწრება?</h3>
                             <i class="fa-solid fa-chevron-down faq-icon" aria-hidden="true"></i>
                         </div>
@@ -705,7 +844,7 @@
                     </div>
 
                     <div class="faq-item">
-                        <div class="faq-question">
+                        <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                             <h3>როგორ შემიძლია ჩავერთო მოხალისედ მსახურების გუნდში?</h3>
                             <i class="fa-solid fa-chevron-down faq-icon" aria-hidden="true"></i>
                         </div>
@@ -928,8 +1067,6 @@
             const phoneError = document.getElementById("campPhoneError");
             const emailError = document.getElementById("campEmailError");
 
-            let submitted = false;
-
             // მოდალის გახსნა და გასუფთავება
             openModalBtn.addEventListener("click", () => {
                 modal.classList.add("modal-active");
@@ -938,7 +1075,6 @@
                 successToast.style.display = "none";
                 clearFormErrors();
                 regForm.reset();
-                submitted = false;
             });
 
             // მოდალის დახურვა
@@ -1009,8 +1145,6 @@
 
                 if (!isValid) return;
 
-                submitted = true;
-
                 // ვამზადებთ მონაცემებს Google Sheets-ში გასაგზავნად ზუსტი რეალური ID-ებით
                 const formData = new FormData();
                 formData.append('entry.1880814093', document.getElementById("hiddenLeaderInput").value);
@@ -1034,7 +1168,6 @@
                         closeCampModalFunc();
                         regForm.reset();
                         successToast.style.display = "none";
-                        submitted = false;
                     }, 3000);
                 })
                 .catch(err => {
@@ -1045,24 +1178,35 @@
 
             // FAQ Accordion toggling
             document.querySelectorAll(".faq-question").forEach(question => {
-                question.addEventListener("click", () => {
+                const toggleFaq = () => {
                     const item = question.parentElement;
                     const answer = item.querySelector(".faq-answer");
                     const isActive = item.classList.contains("active");
-                    
+
                     document.querySelectorAll(".faq-item.active").forEach(activeItem => {
                         if (activeItem !== item) {
                             activeItem.classList.remove("active");
                             activeItem.querySelector(".faq-answer").style.maxHeight = null;
+                            activeItem.querySelector(".faq-question").setAttribute("aria-expanded", "false");
                         }
                     });
-                    
+
                     if (isActive) {
                         item.classList.remove("active");
                         answer.style.maxHeight = null;
+                        question.setAttribute("aria-expanded", "false");
                     } else {
                         item.classList.add("active");
                         answer.style.maxHeight = answer.scrollHeight + "px";
+                        question.setAttribute("aria-expanded", "true");
+                    }
+                };
+
+                question.addEventListener("click", toggleFaq);
+                question.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleFaq();
                     }
                 });
             });
