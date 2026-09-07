@@ -255,7 +255,7 @@
         pointer-events: auto;
     }
 
-    .modal-content-box {
+    .group-modal .modal-content-box {
         background: #fdfbf7;
         width: 100%;
         max-width: 700px;
@@ -267,6 +267,11 @@
         transform: translateY(20px);
         transition: transform 0.4s ease;
         border: 1px solid #f3eedf;
+        /* style.css-ის გლობალურ .modal-content-box-ს 40px padding აქვს —
+           იქ ის ღონისძიების ფორმას ჭირდება, აქ კი ჰერო სურათს კიდეებიდან
+           აშორებდა და ყუთს ზედმეტად აგრძელებდა. */
+        padding: 0;
+    }
     }
 
     .group-modal.modal-active .modal-content-box {
@@ -300,12 +305,15 @@
     .modal-hero-image {
         height: 280px;
         width: 100%;
+        display: block;
         object-fit: cover;
         background-color: #ebdcd0;
+        border-radius: 12px 12px 0 0;
     }
 
     .modal-body {
         padding: 40px;
+        text-align: left;
     }
 
     .modal-title {
@@ -385,6 +393,12 @@
         border: none;
     }
 
+    .group-modal .btn-modal-cta {
+        width: auto;
+        box-shadow: none;
+        justify-content: normal;
+    }
+
     .btn-modal-primary {
         background-color: #aa954f;
         color: #ffffff;
@@ -419,13 +433,21 @@
         position: relative;
     }
 
+    .inline-form-title {
+        font-size: 1.4rem;
+        color: #111;
+        margin: 0 0 15px 0;
+        border-bottom: 1px solid #f3eedf;
+        padding-bottom: 8px;
+    }
+
     .form-group {
         margin-bottom: 15px;
+        text-align: left;
     }
 
     .form-group label {
         display: block;
-        font-family: 'Montserrat', sans-serif;
         font-size: 0.8rem;
         font-weight: 600;
         color: #aa954f;
@@ -439,7 +461,6 @@
         padding: 12px;
         border: 1px solid #e1d8bf;
         border-radius: 4px;
-        font-family: 'Montserrat', sans-serif;
         font-size: 0.92rem;
         box-sizing: border-box;
         background: #fdfbf7;
@@ -452,10 +473,14 @@
     }
 
     /* 🌟 წითელი შეცდომის შეტყობინების სტილი ვალიდაციისთვის */
+    .form-group.has-error input {
+        border-color: #ea4335;
+        background-color: #fffaf9;
+    }
+
     .error-message {
         display: none;
         color: #ea4335;
-        font-family: 'Montserrat', sans-serif;
         font-size: 0.78rem;
         font-weight: 500;
         margin-top: 5px;
@@ -469,6 +494,16 @@
         margin-top: 20px;
     }
 
+    .btn-submit-main {
+        flex: 2 1 0;
+        justify-content: center;
+    }
+
+    .btn-submit-back {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+
     /* 21-ე საუკუნის თანამედროვე შეტყობინების სტილი */
     .success-toast {
         display: none;
@@ -479,7 +514,6 @@
         border-radius: 8px;
         margin-top: 20px;
         text-align: center;
-        font-family: 'Montserrat', sans-serif;
         animation: fadeInSimple 0.4s ease-out;
     }
 
@@ -515,6 +549,10 @@
     }
 
     @media (max-width: 600px) {
+        .group-modal {
+            padding: 14px;
+        }
+
         .modal-details-grid {
             grid-template-columns: 1fr;
             gap: 15px;
@@ -522,6 +560,14 @@
 
         .modal-body {
             padding: 25px;
+        }
+
+        .modal-hero-image {
+            height: 200px;
+        }
+
+        .inline-register-form {
+            padding: 20px;
         }
 
         .modal-footer-action,
@@ -846,7 +892,7 @@
 </main>
 
 <div class="group-modal" id="groupModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-content-box">
+    <div class="modal-content-box" id="groupModalBox">
         <button class="modal-close-btn" id="closeModal" aria-label="ფანჯრის დახურვა">
             <i class="fa-solid fa-xmark"></i>
         </button>
@@ -882,10 +928,9 @@
                 </a>
             </div>
 
+            <!-- რეგისტრაციის ფორმა იმავე ადგილას, აღწერის ქვემოთ იხსნება -->
             <div class="inline-register-form" id="registerFormBlock">
-                <h3
-                    style="font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #111; margin: 0 0 15px 0; border-bottom: 1px solid #f3eedf; padding-bottom: 8px;">
-                    ჯგუფში რეგისტრაცია</h3>
+                <h3 class="inline-form-title">ჯგუფში რეგისტრაცია</h3>
 
                 <form id="groupRegisterForm">
                     <input type="hidden" id="hiddenLeaderInput" name="entry.1880814093" value="">
@@ -910,10 +955,10 @@
                     </div>
 
                     <div class="form-submit-row">
-                        <button type="submit" class="btn-modal-cta btn-modal-primary" style="flex: 2;">განაცხადის
+                        <button type="submit" class="btn-modal-cta btn-modal-primary btn-submit-main">განაცხადის
                             გაგზავნა</button>
-                        <button type="button" class="btn-modal-cta btn-modal-secondary" id="cancelRegister"
-                            style="flex: 1;">უკან</button>
+                        <button type="button" class="btn-modal-cta btn-modal-secondary btn-submit-back"
+                            id="cancelRegister">უკან</button>
                     </div>
                 </form>
             </div>
@@ -923,7 +968,6 @@
                 <h4>რეგისტრაცია წარმატებით შესრულდა!</h4>
                 <p>თქვენი განაცხადი მიღებულია ცხრილში, მალე დაგიკავშირდებიან.</p>
             </div>
-
         </div>
     </div>
 </div>
@@ -1102,6 +1146,7 @@
                     registerFormBlock.style.display = "none";
                     successToast.style.display = "none";
                     phoneError.style.display = "none";
+                    regForm.querySelectorAll(".form-group").forEach(g => g.classList.remove("has-error"));
                     defaultActions.style.display = "flex";
                     regForm.reset();
 
@@ -1138,10 +1183,12 @@
 
             if (!phoneRegex.test(phoneValue)) {
                 phoneError.style.display = "flex"; // ვაჩენთ წითელ შეტყობინებას
+                phoneInput.closest(".form-group").classList.add("has-error");
                 phoneInput.focus();
                 return; // აჩერებს რეგისტრაციის პროცესს
             } else {
                 phoneError.style.display = "none"; // თუ სწორია, ვმალავთ შეცდომას
+                phoneInput.closest(".form-group").classList.remove("has-error");
             }
 
             const formData = new FormData();
@@ -1164,6 +1211,7 @@
                         if (typeof window.unlockBodyScroll === "function") window.unlockBodyScroll();
                         regForm.reset();
                         successToast.style.display = "none";
+                        defaultActions.style.display = "flex";
                     }, 2500);
                 })
                 .catch(err => {
