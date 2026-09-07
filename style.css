@@ -3033,6 +3033,66 @@ a.next-service .ns-where, .next-service a.ns-where {
     margin-bottom: 20px;
 }
 
+/* კვირის დღეები — მუხლის თავზე, დღევანდელი ოქროთია მონიშნული */
+.verse-days {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 26px;
+}
+
+.verse-days[hidden] { display: none; }
+
+.verse-day {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 9px 2px 10px;
+    position: relative;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.55);
+    font-family: inherit;
+    font-size: 0.82rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.25s, border-color 0.25s, background 0.25s, opacity 0.25s;
+}
+
+.verse-day:hover {
+    color: var(--white);
+    border-color: rgba(170, 149, 79, 0.5);
+    opacity: 1;
+}
+
+/* მომავალი დღეები ღიაა, უბრალოდ უფრო ჩუმად ჩანს */
+.verse-day.is-future { opacity: 0.5; }
+
+.verse-day.is-today {
+    border-color: rgba(170, 149, 79, 0.75);
+    color: var(--gold);
+}
+
+.verse-day.is-active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--dark-900);
+    font-weight: 700;
+    opacity: 1;
+}
+
+/* წაკითხულ დღეს პატარა წერტილი ადევს */
+.verse-day.is-read::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 4px;
+    width: 3px;
+    height: 3px;
+    margin-left: -1.5px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
 .verse-text {
     position: relative;
     margin: 0;
@@ -3057,6 +3117,64 @@ a.next-service .ns-where, .next-service a.ns-where {
     color: var(--gold);
     font-size: 0.95rem;
     letter-spacing: 1px;
+}
+
+/* წაკითხვის ღილაკი და ზედიზედ დღეების მთვლელი */
+.verse-progress {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 24px;
+}
+
+.verse-progress[hidden] { display: none; }
+
+.verse-read {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 20px;
+    border: 1px solid rgba(170, 149, 79, 0.45);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.verse-read:hover:not(:disabled) {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--dark-900);
+}
+
+.verse-read:disabled { cursor: default; }
+
+/* დღევანდელი უკვე მონიშნულია — ღილაკი ჩუმდება, მაგრამ არ ნაცრისფრდება */
+.verse-read.is-done {
+    border-color: rgba(170, 149, 79, 0.25);
+    color: rgba(170, 149, 79, 0.85);
+    background: rgba(170, 149, 79, 0.08);
+}
+
+.verse-read i { font-size: 1.05em; }
+
+.verse-streak {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.verse-streak[hidden] { display: none; }
+
+.verse-streak b {
+    color: var(--gold);
+    font-weight: 700;
 }
 
 /* მუხლების PDF — მითითების ქვევით, ოქროს ჩარჩოში */
@@ -3395,6 +3513,23 @@ a.next-service .ns-where, .next-service a.ns-where {
 @media (max-width: 560px) {
     .prayer-row {
         grid-template-columns: 1fr;
+    }
+
+    /* შვიდი დღე ვიწრო ეკრანზეც ერთ რიგში უნდა ჩაეტიოს */
+    .verse-days {
+        gap: 4px;
+        margin-bottom: 22px;
+    }
+
+    .verse-day {
+        padding: 8px 0 9px;
+        font-size: 0.76rem;
+        border-radius: 8px;
+    }
+
+    .verse-read {
+        padding: 10px 16px;
+        font-size: 0.85rem;
     }
 }
 

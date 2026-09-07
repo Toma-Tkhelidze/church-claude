@@ -389,17 +389,32 @@
 
             <div class="weekly-head">
                 <span class="grid-uppertitle">ერთი წუთი სიჩუმისთვის</span>
-                <h2>კვირის მუხლი და ლოცვა</h2>
-                <p>ერთი მუხლი, რომელზეც მთელი კვირის განმავლობაში იფიქრებ. აქვე შეგიძლია გაგვიზიარო შენი ლოცვითი საჭიროება.</p>
+                <h2>დღის მუხლი და ლოცვა</h2>
+                <p>თითოეული დღისთვის ერთი მუხლი ამ კვირის ქადაგებიდან. აქვე შეგიძლია გაგვიზიარო შენი ლოცვითი საჭიროება.</p>
             </div>
 
             <div class="weekly-grid">
 
                 <!-- კვირის მუხლი (ტექსტს Sanity ცვლის; აქ სარეზერვო ვარიანტია) -->
                 <figure class="verse-card">
-                    <span class="verse-eyebrow">კვირის მუხლი</span>
+                    <span class="verse-eyebrow">დღის მუხლი</span>
+
+                    <!-- კვირის დღეები — ღილაკებს sanity-fetch.js ქმნის მხოლოდ
+                         მაშინ, როცა CMS-ში ერთზე მეტი მუხლია -->
+                    <div class="verse-days" id="verseDays" hidden></div>
+
                     <blockquote class="verse-text" id="sanity-weekly-verse">უფალი არის ჩემი მწყემსი, არაფერი მომაკლდება.</blockquote>
                     <figcaption class="verse-ref" id="sanity-weekly-verse-ref">ფსალმუნი 23:1</figcaption>
+
+                    <!-- წაკითხვის აღნიშვნა და ზედიზედ დღეების მთვლელი.
+                         მონაცემები მხოლოდ ვიზიტორის ბრაუზერშია. -->
+                    <div class="verse-progress" id="verseProgress" hidden>
+                        <button type="button" class="verse-read" id="verseReadBtn">
+                            <i class="fa-regular fa-circle-check" aria-hidden="true"></i>
+                            <span class="verse-read-label">წავიკითხე</span>
+                        </button>
+                        <span class="verse-streak" id="verseStreak" role="status" hidden></span>
+                    </div>
 
                     <!-- ქადაგების მუხლების PDF — ჩანს მხოლოდ იმ შემთხვევაში,
                          როცა Sanity-ში ფაილია ატვირთული -->

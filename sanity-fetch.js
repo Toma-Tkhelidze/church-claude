@@ -435,6 +435,7 @@ function updatePageContent() {
       kidsCampTitle,
       kidsCampDesc1,
       kidsCampDesc2,
+      weeklyVerses[]{text, ref},
       weeklyVerseText,
       weeklyVerseRef,
       "weeklyVersePdf": weeklyVersePdf.asset->{url, originalFilename, size}
@@ -722,16 +723,10 @@ function updatePageContent() {
             if (el) el.textContent = siteContent.kidsCampDesc2;
           }
 
-          // კვირის მუხლი (მთავარი გვერდი). თუ CMS-ში ცარიელია,
-          // გვერდზე რჩება კოდში ჩაწერილი სარეზერვო მუხლი.
-          if (siteContent.weeklyVerseText) {
-            const el = document.getElementById('sanity-weekly-verse');
-            if (el) el.textContent = siteContent.weeklyVerseText;
-          }
-          if (siteContent.weeklyVerseRef) {
-            const el = document.getElementById('sanity-weekly-verse-ref');
-            if (el) el.textContent = siteContent.weeklyVerseRef;
-          }
+          // დღის მუხლები (მთავარი გვერდი). თავად დახატვა ქვემოთ,
+          // .finally()-ში ხდება — ისე ღილაკი მაშინაც მუშაობს, როცა
+          // Sanity-სთან კავშირი ვერ დამყარდა.
+          dailyVerseData = siteContent;
           // მუხლების PDF. ბმული მარკაპში დამალულია და მხოლოდ
           // აქ, ფაილის არსებობისას, იხსნება.
           const pdf = siteContent.weeklyVersePdf;
@@ -918,7 +913,10 @@ function updatePageContent() {
     .catch(error => {
       console.error('Error fetching data from Sanity:', error);
       showSermonsFallback('error');
-    });
+    })
+    // წარმატებაზეც და შეცდომაზეც — ერთხელ. კავშირის გარეშე მუხლი
+    // მარკაპში ჩაწერილი რჩება, სერიის მთვლელი კი მაინც მუშაობს.
+    .finally(renderDailyVerse);
 }
 
 // ── ცალკეული ყოველკვირეული ქადაგებები (ქადაგებების გვერდი) ──────────
@@ -974,6 +972,216 @@ function weeklySermonCard(item, showYear) {
         ${badge}
       </span>
     </button>`;
+}
+
+// ══ დღის მუხლი ═════════════════════════════════════════════════════
+// CMS-ში კვირაში ერთხელ იწერება შვიდი მუხლი — თითო დღეს თითო. საიტი
+// დღევანდელს თავად ირჩევს, ამიტომ ყოველდღიური განახლება საჭირო არაა.
+// წაკითხვის ნიშანი და ზედიზედ დღეების მთვლელი მხოლოდ ვიზიტორის
+// ბრაუზერშია — არსად იგზავნება.
+
+let dailyVerseData = null;
+
+const VERSE_KEY = 'efc:verse:v1';
+const VERSE_LABELS = ['კვ', 'ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა'];
+const VERSE_DAY_NAMES = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
+// სერიის დასათვლელად ორი თარიღიც კმარა, მაგრამ დღეების ზოლს მიმდინარე
+// კვირის შვიდივე დღე სჭირდება. ორმოცდაათი ჩანაწერი ~1 KB-ია.
+const VERSE_MAX_DAYS = 50;
+
+// თარიღი ადგილობრივი დროით, YYYY-MM-DD. UTC-ს ვერ გამოვიყენებთ:
+// საღამოს გვიან წაკითხვა მეორე დღეს ჩაეთვლებოდა.
+function verseDayKey(date) {
+  const d = date || new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
+
+function verseYesterdayKey() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return verseDayKey(d);
+}
+
+function readVerseState() {
+  const empty = { last: '', streak: 0, days: {} };
+  try {
+    const raw = JSON.parse(localStorage.getItem(VERSE_KEY));
+    if (!raw || typeof raw !== 'object') return empty;
+    return {
+      last: typeof raw.last === 'string' ? raw.last : '',
+      streak: typeof raw.streak === 'number' ? raw.streak : 0,
+      days: (raw.days && typeof raw.days === 'object') ? raw.days : {}
+    };
+  } catch (e) { return empty; }
+}
+
+function writeVerseState(state) {
+  try {
+    const keys = Object.keys(state.days);
+    if (keys.length > VERSE_MAX_DAYS) {
+      keys.sort().slice(0, keys.length - VERSE_MAX_DAYS)
+        .forEach(k => { delete state.days[k]; });
+    }
+    localStorage.setItem(VERSE_KEY, JSON.stringify(state));
+  } catch (e) { /* კვოტა ან private mode */ }
+}
+
+// გუშინდელზე ძველი ჩანაწერი სერიას წყვეტს — შენახული რიცხვი
+// ავტომატურად აღარ ითვლება.
+function verseStreakNow(state) {
+  if (!state.last) return 0;
+  return (state.last === verseDayKey() || state.last === verseYesterdayKey())
+    ? state.streak
+    : 0;
+}
+
+function markVerseRead() {
+  const state = readVerseState();
+  const today = verseDayKey();
+  if (state.last === today) return state;
+  state.streak = (state.last === verseYesterdayKey()) ? state.streak + 1 : 1;
+  state.last = today;
+  state.days[today] = 1;
+  writeVerseState(state);
+  return state;
+}
+
+function renderDailyVerse() {
+  const textEl = document.getElementById('sanity-weekly-verse');
+  if (!textEl) return;                       // ბარათი მხოლოდ მთავარ გვერდზეა
+  const refEl = document.getElementById('sanity-weekly-verse-ref');
+
+  // მუხლების სია. ახალი ველი პრიორიტეტულია; თუ ცარიელია, ძველ ერთ
+  // მუხლს ვიყენებთ; თუ ისიც — მარკაპში ჩაწერილ სარეზერვოს.
+  const cms = dailyVerseData || {};
+  let verses = Array.isArray(cms.weeklyVerses)
+    ? cms.weeklyVerses.filter(v => v && v.text)
+    : [];
+  if (!verses.length && cms.weeklyVerseText) {
+    verses = [{ text: cms.weeklyVerseText, ref: cms.weeklyVerseRef || '' }];
+  }
+  if (!verses.length) {
+    verses = [{
+      text: textEl.textContent.trim(),
+      ref: refEl ? refEl.textContent.trim() : ''
+    }];
+  }
+
+  const todayIdx = new Date().getDay();      // 0 = კვირა, ქადაგების დღე
+  let shownIdx = todayIdx;
+
+  const daysBox = document.getElementById('verseDays');
+  const progressBox = document.getElementById('verseProgress');
+  const readBtn = document.getElementById('verseReadBtn');
+  const streakEl = document.getElementById('verseStreak');
+
+  // მიმდინარე კვირის კონკრეტული თარიღი — დღეების ზოლს სჭირდება,
+  // რომ დაინახოს, რომელი დღე იყო წაკითხული. შუადღეს ვითვლით,
+  // რომ ზაფხულის დროზე გადასვლამ დღე არ წაძრას.
+  function dateOfWeekday(i) {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() - todayIdx + i);
+    return d;
+  }
+
+  function paintVerse() {
+    // შვიდზე ნაკლები მუხლიც მუშაობს — სია ციკლურად ტრიალდება.
+    const v = verses[shownIdx % verses.length];
+    textEl.textContent = v.text;
+    if (refEl) refEl.textContent = v.ref || '';
+  }
+
+  function paintDays() {
+    if (!daysBox || daysBox.hidden) return;
+    const state = readVerseState();
+    Array.prototype.forEach.call(daysBox.children, (btn, i) => {
+      btn.classList.toggle('is-today', i === todayIdx);
+      btn.classList.toggle('is-active', i === shownIdx);
+      btn.classList.toggle('is-future', i > todayIdx);
+      btn.classList.toggle('is-read', !!state.days[verseDayKey(dateOfWeekday(i))]);
+      btn.setAttribute('aria-pressed', i === shownIdx ? 'true' : 'false');
+    });
+  }
+
+  function paintProgress() {
+    if (!progressBox || !readBtn) return;
+    const state = readVerseState();
+    const label = readBtn.querySelector('.verse-read-label');
+    const icon = readBtn.querySelector('i');
+    const doneToday = !!state.days[verseDayKey()];
+
+    if (shownIdx !== todayIdx) {
+      // სხვა დღეს ათვალიერებს — ღილაკი უკან აბრუნებს.
+      readBtn.classList.remove('is-done');
+      readBtn.disabled = false;
+      readBtn.dataset.action = 'today';
+      if (label) label.textContent = 'დღევანდელ მუხლზე დაბრუნება';
+      if (icon) icon.className = 'fa-solid fa-arrow-rotate-left';
+    } else if (doneToday) {
+      readBtn.classList.add('is-done');
+      readBtn.disabled = true;
+      readBtn.dataset.action = '';
+      if (label) label.textContent = 'დღეს წაკითხულია';
+      if (icon) icon.className = 'fa-solid fa-circle-check';
+    } else {
+      readBtn.classList.remove('is-done');
+      readBtn.disabled = false;
+      readBtn.dataset.action = 'read';
+      if (label) label.textContent = 'წავიკითხე';
+      if (icon) icon.className = 'fa-regular fa-circle-check';
+    }
+
+    if (streakEl) {
+      const n = verseStreakNow(state);
+      // ერთი დღე ჯერ სერია არაა — მთვლელი მეორე დღიდან ჩნდება.
+      if (n >= 2) {
+        streakEl.innerHTML = '<span aria-hidden="true">🔥</span> <b>' + n + '</b> დღე ზედიზედ';
+        streakEl.hidden = false;
+      } else {
+        streakEl.hidden = true;
+      }
+    }
+
+    progressBox.hidden = false;
+  }
+
+  function repaint() {
+    paintVerse();
+    paintDays();
+    paintProgress();
+  }
+
+  // დღეების ზოლი მხოლოდ მაშინ, როცა ასარჩევი ნამდვილად არის.
+  if (daysBox && verses.length > 1) {
+    daysBox.innerHTML = VERSE_LABELS.map((lbl, i) =>
+      `<button type="button" class="verse-day" data-day="${i}" aria-pressed="false" aria-label="${escapeHtml(VERSE_DAY_NAMES[i])}">${escapeHtml(lbl)}</button>`
+    ).join('');
+    daysBox.hidden = false;
+    daysBox.addEventListener('click', e => {
+      const btn = e.target.closest('.verse-day');
+      if (!btn) return;
+      shownIdx = Number(btn.getAttribute('data-day'));
+      repaint();
+    });
+  }
+
+  if (readBtn) {
+    readBtn.addEventListener('click', () => {
+      if (readBtn.dataset.action === 'today') {
+        shownIdx = todayIdx;
+        repaint();
+        return;
+      }
+      markVerseRead();
+      paintDays();
+      paintProgress();
+    });
+  }
+
+  repaint();
 }
 
 // ══ ყურების პროგრესი ═══════════════════════════════════════════════
