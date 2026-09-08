@@ -15,6 +15,11 @@ on:
     # ორშაბათი, 06:00 UTC — თბილისში 10:00, კვირის ქადაგების ატვირთვის შემდეგ
     - cron: '0 6 * * 1'
   workflow_dispatch:
+    inputs:
+      force_send:
+        description: 'წერილი გაიგზავნოს ახალი ქადაგების გარეშეც (ტესტისთვის)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -64,7 +69,7 @@ jobs:
       # Variables), სკრიპტი მხოლოდ სატესტო რეჟიმში მუშაობს და
       # ჟურნალში წერს, რას გააგზავნიდა. შემთხვევით ვერაფერი გაიგზავნება.
       - name: შეტყობინება ელფოსტით
-        if: steps.after.outputs.id != '' && steps.before.outputs.id != steps.after.outputs.id
+        if: steps.after.outputs.id != '' && (steps.before.outputs.id != steps.after.outputs.id || inputs.force_send)
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
         run: |
