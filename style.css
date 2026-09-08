@@ -4062,3 +4062,126 @@ a.next-service .ns-where, .next-service a.ns-where {
 
 .success-toast { display: none; background: #eef9f1; border: 1px solid #34a853; color: #1e4620; padding: 20px; border-radius: 8px; text-align: center; font-family: 'Montserrat', sans-serif; }
 .success-toast i { color: #34a853; font-size: 1.8rem; margin-bottom: 8px; display: block; }
+
+/* ==========================================================================
+   INSTALL BAR — მთავარ ეკრანზე დამატების შეთავაზება
+   მარკაპს script.js ქმნის და მხოლოდ მობილურზე, მეორე ვიზიტიდან.
+   ========================================================================== */
+.install-bar {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    z-index: 1200;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 14px 16px 16px;
+    background: var(--dark-800);
+    border: 1px solid rgba(170, 149, 79, 0.35);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+    transform: translateY(140%);
+    opacity: 0;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s;
+}
+
+.install-bar.is-open {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* ფონური სურათი და არა <img>: მობილურის მედია-ბლოკებში დგას
+   img { width: 100% !important }, რომელიც ხატულას გაწელავდა. */
+.install-icon {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 11px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.install-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.install-body strong {
+    display: block;
+    color: var(--white);
+    font-size: 0.98rem;
+    line-height: 1.35;
+    margin-bottom: 3px;
+}
+
+.install-body span {
+    display: block;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.install-go {
+    margin-top: 12px;
+    padding: 9px 20px;
+    border: 1px solid var(--gold);
+    border-radius: 999px;
+    background: var(--gold);
+    color: var(--dark-900);
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+}
+
+.install-go:hover {
+    background: transparent;
+    color: var(--gold);
+}
+
+/* iOS-ზე ავტომატური დამატება არ არსებობს — მხოლოდ ვასწავლით */
+.install-hint {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 11px 0 0;
+    color: var(--gold);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.install-hint svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+}
+
+.install-close {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: -4px -2px 0 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: color 0.3s, background 0.3s;
+}
+
+.install-close:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .install-bar { transition: opacity 0.2s; transform: none; }
+}

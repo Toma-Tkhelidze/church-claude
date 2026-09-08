@@ -923,3 +923,124 @@ window.unlockBodyScroll = function() {
         });
     });
 })();
+
+
+// ══ მთავარ ეკრანზე დამატების შეთავაზება ════════════════════════════
+// ზოლი მხოლოდ მაშინ ჩნდება, როცა ნამდვილად აზრი აქვს: მობილურზე,
+// მეორე ვიზიტიდან, თუ აპლიკაცია ჯერ დაინსტალირებული არაა და
+// ვიზიტორს ადრე უარი არ უთქვამს. დახურვის შემდეგ სამი თვე ჩუმდება —
+// ერთხელ უარის თქმა საკმარისი პასუხია.
+(function () {
+    const KEY = 'efck:install:v1';
+    const QUIET_DAYS = 90;
+    const MIN_VISITS = 2;
+    const DELAY_MS = 15000;
+
+    const src = (document.currentScript && document.currentScript.src) || '';
+    if (!src) return;
+    const iconUrl = new URL('icons/icon-192.png', src).href;
+
+    // უკვე დაინსტალირებულია — არაფერს ვთავაზობთ.
+    const installed = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+    if (installed) return;
+
+    const isMobile = window.matchMedia('(max-width: 991px)').matches;
+    if (!isMobile) return;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    let state;
+    try {
+        state = JSON.parse(localStorage.getItem(KEY)) || {};
+    } catch (e) {
+        state = {};
+    }
+    if (typeof state.visits !== 'number') state.visits = 0;
+
+    state.visits += 1;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+
+    if (state.visits < MIN_VISITS) return;
+    if (state.dismissedAt && Date.now() - state.dismissedAt < QUIET_DAYS * 864e5) return;
+
+    // Android/Chrome ამ მოვლენას თავად აგზავნის. iOS-ზე ის არ არსებობს —
+    // იქ მხოლოდ ხელით დამატების მინიშნებას ვაჩვენებთ.
+    let deferred = null;
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        deferred = e;
+    });
+
+    function remember(field) {
+        state[field] = Date.now();
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+    }
+
+    function show() {
+        if (!deferred && !isIOS) return;      // ვერც ვთავაზობთ, ვერც ვასწავლით
+        if (document.querySelector('.install-bar')) return;
+
+        const bar = document.createElement('div');
+        bar.className = 'install-bar';
+        bar.setAttribute('role', 'dialog');
+        bar.setAttribute('aria-label', 'აპლიკაციის დამატება');
+
+        const action = isIOS
+            ? `<p class="install-hint">
+                 დააჭირე
+                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                   <path d="M12 3v12M12 3l-4 4M12 3l4 4M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"
+                         fill="none" stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"/>
+                 </svg>
+                 და აირჩიე „Add to Home Screen“
+               </p>`
+            : '<button type="button" class="install-go">დამატება</button>';
+
+        bar.innerHTML = `
+            <span class="install-icon" style="background-image:url('${iconUrl}')" aria-hidden="true"></span>
+            <div class="install-body">
+                <strong>დაამატე მთავარ ეკრანზე</strong>
+                <span>დღის მუხლი და ქადაგებები ერთი შეხებით.</span>
+                ${action}
+            </div>
+            <button type="button" class="install-close" aria-label="დახურვა">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>`;
+
+        document.body.appendChild(bar);
+        // rAF დამალულ ტაბში ჩერდება — ტაიმერი დაზღვევაა.
+        const open = () => bar.classList.add('is-open');
+        requestAnimationFrame(open);
+        setTimeout(open, 50);
+
+        const close = () => {
+            bar.classList.remove('is-open');
+            setTimeout(() => bar.remove(), 300);
+        };
+
+        bar.querySelector('.install-close').addEventListener('click', () => {
+            remember('dismissedAt');
+            close();
+        });
+
+        const go = bar.querySelector('.install-go');
+        if (go) {
+            go.addEventListener('click', () => {
+                close();
+                if (!deferred) return;
+                deferred.prompt();
+                deferred.userChoice
+                    .then(res => {
+                        // უარიც პასუხია — თავიდან აღარ შევაწუხებთ.
+                        if (res && res.outcome !== 'accepted') remember('dismissedAt');
+                        deferred = null;
+                    })
+                    .catch(() => { deferred = null; });
+            });
+        }
+    }
+
+    setTimeout(show, DELAY_MS);
+})();
