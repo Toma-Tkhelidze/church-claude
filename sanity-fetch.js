@@ -990,6 +990,9 @@ const VERSE_DAY_NAMES = ['ორშაბათი', 'სამშაბათ�
 // სერიის დასათვლელად ორი თარიღიც კმარა, მაგრამ დღეების ზოლს მიმდინარე
 // კვირის შვიდივე დღე სჭირდება. ორმოცდაათი ჩანაწერი ~1 KB-ია.
 const VERSE_MAX_DAYS = 50;
+// ამაზე გრძელი მუხლი უფრო პატარა შრიფტით იწერება. ზღვარი გაზომვით
+// შეირჩა: 180 სიმბოლო მობილურზე დაახლოებით შვიდ სტრიქონს იკავებს.
+const VERSE_LONG_CHARS = 180;
 
 // თარიღი ადგილობრივი დროით, YYYY-MM-DD. UTC-ს ვერ გამოვიყენებთ:
 // საღამოს გვიან წაკითხვა მეორე დღეს ჩაეთვლებოდა.
@@ -1095,6 +1098,9 @@ function renderDailyVerse() {
     // შვიდზე ნაკლები მუხლიც მუშაობს — სია ციკლურად ტრიალდება.
     const v = verses[shownIdx % verses.length];
     textEl.textContent = v.text;
+    // გრძელი მუხლი ბარათს ორჯერ მაღალს ხდის. შრიფტს ოდნავ ვაპატარავებთ,
+    // რომ ტექსტი მთლიანად ჩანდეს — ჩამოჭრა წმინდა წერილს არ შეეფერება.
+    textEl.classList.toggle('is-long', (v.text || '').length > VERSE_LONG_CHARS);
     if (refEl) refEl.textContent = v.ref || '';
   }
 
@@ -1102,10 +1108,14 @@ function renderDailyVerse() {
     if (!daysBox || daysBox.hidden) return;
     const state = readVerseState();
     Array.prototype.forEach.call(daysBox.children, (btn, i) => {
+      const future = i > todayIdx;
       btn.classList.toggle('is-today', i === todayIdx);
       btn.classList.toggle('is-active', i === shownIdx);
-      btn.classList.toggle('is-future', i > todayIdx);
+      btn.classList.toggle('is-future', future);
       btn.classList.toggle('is-read', !!state.days[verseDayKey(dateOfWeekday(i))]);
+      // მომავალი დღეები დაკეტილია: თუ შვიდივე ერთდროულად იკითხება,
+      // ყოველდღიური დაბრუნების მიზეზი ქრება.
+      btn.disabled = future;
       btn.setAttribute('aria-pressed', i === shownIdx ? 'true' : 'false');
     });
   }
@@ -1166,7 +1176,7 @@ function renderDailyVerse() {
     daysBox.hidden = false;
     daysBox.addEventListener('click', e => {
       const btn = e.target.closest('.verse-day');
-      if (!btn) return;
+      if (!btn || btn.disabled) return;
       shownIdx = Number(btn.getAttribute('data-day'));
       repaint();
     });

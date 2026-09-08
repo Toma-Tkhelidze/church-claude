@@ -3283,14 +3283,19 @@ a.next-service .ns-where, .next-service a.ns-where {
     transition: color 0.25s, border-color 0.25s, background 0.25s, opacity 0.25s;
 }
 
-.verse-day:hover {
+.verse-day:not(:disabled):hover {
     color: var(--white);
     border-color: rgba(170, 149, 79, 0.5);
     opacity: 1;
 }
 
-/* მომავალი დღეები ღიაა, უბრალოდ უფრო ჩუმად ჩანს */
-.verse-day.is-future { opacity: 0.5; }
+/* მომავალი დღეები დაკეტილია — მუხლი თავის დღეს გაიხსნება */
+.verse-day.is-future,
+.verse-day:disabled {
+    opacity: 0.3;
+    cursor: default;
+    border-style: dashed;
+}
 
 .verse-day.is-today {
     border-color: rgba(170, 149, 79, 0.75);
@@ -3325,6 +3330,13 @@ a.next-service .ns-where, .next-service a.ns-where {
     line-height: 1.75;
     color: var(--white);
     font-family: 'BPGglaho', 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif;
+}
+
+/* გრძელი მუხლი: შრიფტი ოდნავ პატარავდება, სტრიქონები კი უფრო
+   ხშირი ხდება — ტექსტი მთლიანად ჩანს და ბარათი არ იწელება */
+.verse-text.is-long {
+    font-size: clamp(1rem, 1.5vw, 1.18rem);
+    line-height: 1.68;
 }
 
 .verse-text::before {
