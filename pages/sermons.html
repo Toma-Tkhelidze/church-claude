@@ -1313,6 +1313,35 @@
 <script>
         document.addEventListener('DOMContentLoaded', () => {
             
+            // ეპიზოდების პანელს სიმაღლეს შიგთავსის მიხედვით ვუწერთ.
+            // CSS-ში ჩაწერილი max-height: 1000px ვიწრო ეკრანზე რვა
+            // ეპიზოდიან სერიას შუაზე ჭრიდა — სათაურები ორ-სამ ხაზზე
+            // გადადის და პანელი ამ ზღვარს სცდება.
+            function openSeries(card) {
+                card.classList.add('is-open');
+                const panel = card.querySelector('.episodes-panel');
+                if (!panel) return;
+                panel.style.maxHeight = panel.scrollHeight + 'px';
+                // ანიმაციის დასრულებისას ზღვარს ვხსნით, რომ ეკრანის
+                // შემობრუნებამ ან შრიფტის დაგვიანებამ ბოლო ეპიზოდი
+                // აღარ დამალოს. transitionend-ს არ ვენდობით: შეწყვეტილი
+                // ანიმაცია მას საერთოდ არ ისვრის.
+                setTimeout(() => {
+                    if (card.classList.contains('is-open')) panel.style.maxHeight = 'none';
+                }, 650);
+            }
+
+            function closeSeries(card) {
+                const panel = card.querySelector('.episodes-panel');
+                if (panel && card.classList.contains('is-open')) {
+                    // 'none'-იდან ანიმაცია არ გაეშვება — ჯერ ვზომავთ.
+                    panel.style.maxHeight = panel.scrollHeight + 'px';
+                    void panel.offsetHeight;
+                }
+                card.classList.remove('is-open');
+                if (panel) panel.style.maxHeight = '0px';
+            }
+
             // 1. Accordion & Video Play Event Delegation on .series-grid
             const seriesGrid = document.querySelector('.series-grid');
             if (seriesGrid) {
@@ -1323,10 +1352,14 @@
                         const currentCard = header.closest('.series-card');
                         document.querySelectorAll('.series-card').forEach(card => {
                             if (card !== currentCard) {
-                                card.classList.remove('is-open');
+                                closeSeries(card);
                             }
                         });
-                        currentCard.classList.toggle('is-open');
+                        if (currentCard.classList.contains('is-open')) {
+                            closeSeries(currentCard);
+                        } else {
+                            openSeries(currentCard);
+                        }
                         return;
                     }
 
@@ -1365,7 +1398,7 @@
                         card.classList.remove('is-hidden');
                     } else {
                         card.classList.add('is-hidden');
-                        card.classList.remove('is-open');
+                        closeSeries(card);
                     }
                 });
             }
