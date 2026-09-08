@@ -3,6 +3,9 @@
 # სამუშაო ამ ფაილს კვირაში ერთხელ ანახლებს, რომ feed-ის ფანჯრიდან
 # გასული ქადაგებები არ დაიკარგოს.
 #
+# თუ ახალი ქადაგება მართლა გამოჩნდა, იმავე გაშვებაზე ელფოსტის
+# შეტყობინებაც იგზავნება — იხ. ბოლო ნაბიჯი.
+#
 # ხელით გაშვება: Actions → ქადაგებების არქივის განახლება → Run workflow
 
 name: ქადაგებების არქივის განახლება
@@ -30,8 +33,19 @@ jobs:
         with:
           node-version: '20'
 
+      # ID-ს განახლებამდე და შემდეგ ვადარებთ. მარტო „ფაილი შეიცვალა“
+      # არ კმარა: სათაურის შესწორებაც ცვლის ფაილს, წერილი კი მხოლოდ
+      # ნამდვილ ახალ ქადაგებაზე უნდა გაიგზავნოს.
+      - name: ბოლო ქადაგების ID — განახლებამდე
+        id: before
+        run: echo "id=$(node scripts/send-sermon-email.js --print-latest)" >> "$GITHUB_OUTPUT"
+
       - name: არქივის შედგენა
         run: node scripts/build-sermon-archive.js
+
+      - name: ბოლო ქადაგების ID — განახლების შემდეგ
+        id: after
+        run: echo "id=$(node scripts/send-sermon-email.js --print-latest)" >> "$GITHUB_OUTPUT"
 
       - name: ცვლილების ჩაწერა
         run: |
@@ -44,3 +58,19 @@ jobs:
           git add data/sermon-archive.json
           git commit -m "chore: ქადაგებების არქივის ავტომატური განახლება"
           git push
+
+      # ჩამრთველი განზრახ ცალკეა: სანამ SERMON_MAIL_ENABLED ცვლადი
+      # „true“ არ გახდება (Settings → Secrets and variables → Actions →
+      # Variables), სკრიპტი მხოლოდ სატესტო რეჟიმში მუშაობს და
+      # ჟურნალში წერს, რას გააგზავნიდა. შემთხვევით ვერაფერი გაიგზავნება.
+      - name: შეტყობინება ელფოსტით
+        if: steps.after.outputs.id != '' && steps.before.outputs.id != steps.after.outputs.id
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: |
+          if [ "${{ vars.SERMON_MAIL_ENABLED }}" = "true" ]; then
+            node scripts/send-sermon-email.js
+          else
+            echo "SERMON_MAIL_ENABLED ჩართული არ არის — სატესტო რეჟიმი."
+            node scripts/send-sermon-email.js --dry-run
+          fi
