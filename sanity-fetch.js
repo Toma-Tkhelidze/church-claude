@@ -983,8 +983,10 @@ function weeklySermonCard(item, showYear) {
 let dailyVerseData = null;
 
 const VERSE_KEY = 'efc:verse:v1';
-const VERSE_LABELS = ['კვ', 'ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა'];
-const VERSE_DAY_NAMES = ['კვირა', 'ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი'];
+// კვირა ორშაბათიდან იწყება: კვირადღის ქადაგების მუხლები მომდევნო
+// შვიდ დღეს მიჰყვება, თავად კვირადღე კი რიგის ბოლოშია.
+const VERSE_LABELS = ['ორ', 'სა', 'ოთ', 'ხუ', 'პა', 'შა', 'კვ'];
+const VERSE_DAY_NAMES = ['ორშაბათი', 'სამშაბათი', 'ოთხშაბათი', 'ხუთშაბათი', 'პარასკევი', 'შაბათი', 'კვირა'];
 // სერიის დასათვლელად ორი თარიღიც კმარა, მაგრამ დღეების ზოლს მიმდინარე
 // კვირის შვიდივე დღე სჭირდება. ორმოცდაათი ჩანაწერი ~1 KB-ია.
 const VERSE_MAX_DAYS = 50;
@@ -1069,7 +1071,9 @@ function renderDailyVerse() {
     }];
   }
 
-  const todayIdx = new Date().getDay();      // 0 = კვირა, ქადაგების დღე
+  // getDay() კვირადღეს ნულს აბრუნებს — ერთი დღით ვძრავთ, რომ
+  // ორშაბათი გახდეს ნული, კვირადღე კი ექვსი.
+  const todayIdx = (new Date().getDay() + 6) % 7;
   let shownIdx = todayIdx;
 
   const daysBox = document.getElementById('verseDays');
