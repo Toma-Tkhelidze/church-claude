@@ -1012,14 +1012,17 @@ window.unlockBodyScroll = function() {
                     + '<li>ჩამონათვალი ჩამოქაჩე და აირჩიე „Add to Home Screen“</li>'
                     + '</ol>';
         } else {
-            action = '<button type="button" class="install-go">დამატება</button>';
+            action = '<button type="button" class="install-go">'
+                + '<i class="fa-solid fa-download" aria-hidden="true"></i>'
+                + 'დამატება</button>';
         }
 
         bar.innerHTML = `
             <span class="install-icon" style="background-image:url('${iconUrl}')" aria-hidden="true"></span>
             <div class="install-body">
+                <span class="install-eyebrow">აპლიკაცია</span>
                 <strong>დაამატე მთავარ ეკრანზე</strong>
-                <span>დღის მუხლი და ქადაგებები ერთი შეხებით.</span>
+                <span class="install-lead">დღის მუხლი და ქადაგებები ერთი შეხებით.</span>
                 ${action}
             </div>
             <button type="button" class="install-close" aria-label="დახურვა">
@@ -1073,7 +1076,7 @@ window.unlockBodyScroll = function() {
         btn.type = 'button';
         btn.className = 'footer-install';
         btn.hidden = true;
-        btn.innerHTML = '<i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>'
+        btn.innerHTML = '<i class="fa-solid fa-mobile-screen-button" aria-hidden="true"></i>'
             + '<span>აპლიკაციის დაყენება</span>';
 
         // ჯვრით დახურვა ზოლს ჩუმდება, ღილაკს კი არა — აქედან
