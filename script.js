@@ -991,7 +991,11 @@ window.unlockBodyScroll = function() {
     if (installed) return;
 
     const ua = navigator.userAgent;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    // iPadOS 13-იდან iPad თავს Mac-ად წარადგენს — მის user agent-ში
+    // სიტყვა „iPad“ აღარ წერია. ერთადერთი საიმედო განსხვავება
+    // შეხების წერტილებია: ნამდვილ Mac-ს ნული აქვს.
+    const isIPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+    const isIOS = (/iPad|iPhone|iPod/.test(ua) || isIPadOS) && !window.MSStream;
     // Facebook-ისა და Instagram-ის შიდა ბრაუზერს „Add to Home Screen“
     // საერთოდ არ აქვს — იქ ინსტრუქცია მხოლოდ დააბნევდა.
     const inApp = /FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(ua);
