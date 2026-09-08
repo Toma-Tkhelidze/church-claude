@@ -898,3 +898,28 @@ window.unlockBodyScroll = function() {
             });
     });
 })();
+
+
+// ══ Service worker ═════════════════════════════════════════════════
+// ოფლაინ წვდომას და მთავარ ეკრანზე დაინსტალირებას ემსახურება.
+// მისამართს თავად ამ სკრიპტის მისამართიდან ვიღებთ: გვერდები
+// სხვადასხვა დონეზე დევს, sw.js კი საიტის ძირშია და მთელ საიტს
+// უნდა აკონტროლებდეს.
+(function () {
+    if (!('serviceWorker' in navigator)) return;
+
+    // document.currentScript მხოლოდ ფაილის შესრულებისას მუშაობს —
+    // ამიტომ მისამართს აქვე ვიმახსოვრებთ, load-ს არ ველოდებით.
+    const src = (document.currentScript && document.currentScript.src) || '';
+    if (!src) return;
+
+    const swUrl = new URL('sw.js', src).href;
+
+    // რეგისტრაციას გვერდის ჩატვირთვის შემდეგ ვაკეთებთ, რომ პირველი
+    // ჩვენებისთვის საჭირო ფაილებს არხი არ წაართვას.
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register(swUrl).catch(err => {
+            console.warn('Service worker რეგისტრაცია ვერ მოხერხდა:', err);
+        });
+    });
+})();
