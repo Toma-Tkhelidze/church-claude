@@ -1108,3 +1108,108 @@ window.unlockBodyScroll = function() {
         setTimeout(openBar, DELAY_MS);
     }
 })();
+
+
+/* ==========================================================================
+   MOBILE BOTTOM NAV — ტელეფონზე ჰედერის ნაცვლად ქვედა ხატულების ზოლი
+   მარკაპი აქ იქმნება, რომ ყველა გვერდზე ერთი და იგივე იყოს.
+   მენიუს ღილაკი იმავე ჰამბურგერს აჭერს, ამიტომ არსებული ლოგიკა
+   (აკორდეონი, ლინკზე დაკეტვა, Escape) უცვლელად მუშაობს.
+   ========================================================================== */
+(function () {
+    const build = () => {
+        if (document.querySelector('.mobile-tabbar')) return;
+
+        const header = document.querySelector('.main-header');
+        if (!header) return;
+
+        const inPages = /\/pages\//.test(window.location.pathname);
+        const root = inPages ? '../' : '';
+        const sub = inPages ? '' : 'pages/';
+
+        const items = [
+            { href: root + 'index.html', icon: 'fa-house', label: 'მთავარი' },
+            { href: sub + 'sermons.html', icon: 'fa-play', label: 'ქადაგებები' },
+            { href: sub + 'give.html', icon: 'fa-hand-holding-heart', label: 'გაეცი', mod: 'give' },
+            { href: sub + 'contact.html', icon: 'fa-envelope', label: 'კონტაქტი' }
+        ];
+
+        // მიმდინარე გვერდი: ცარიელი გზა ("/" ან "/pages/") მთავარ გვერდს ნიშნავს
+        const here = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+
+        const bar = document.createElement('nav');
+        bar.className = 'mobile-tabbar';
+        bar.setAttribute('aria-label', 'მობილური ნავიგაცია');
+
+        items.forEach(item => {
+            const link = document.createElement('a');
+            link.className = 'mobile-tabbar__item'
+                + (item.mod ? ' mobile-tabbar__item--' + item.mod : '');
+            link.href = item.href;
+            if (item.href.split('/').pop().toLowerCase() === here) {
+                link.classList.add('is-active');
+                link.setAttribute('aria-current', 'page');
+            }
+            link.innerHTML = '<i class="fa-solid ' + item.icon + '" aria-hidden="true"></i>'
+                + '<span>' + item.label + '</span>';
+            bar.appendChild(link);
+        });
+
+        const moreBtn = document.createElement('button');
+        moreBtn.type = 'button';
+        moreBtn.className = 'mobile-tabbar__item mobile-tabbar__item--more';
+        moreBtn.setAttribute('aria-expanded', 'false');
+        moreBtn.setAttribute('aria-controls', 'main-nav');
+        moreBtn.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i><span>მენიუ</span>';
+        bar.appendChild(moreBtn);
+
+        document.body.appendChild(bar);
+
+        const scrim = document.createElement('div');
+        scrim.className = 'mobile-nav-scrim';
+        document.body.appendChild(scrim);
+
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        if (!hamburger || !navMenu) return;
+
+        // ჰამბურგერი დამალულია, მაგრამ სწორედ ის ინახავს მენიუს ლოგიკას —
+        // ღილაკიდან მას ვაჭერთ და მოვლენას აღარ ვუშვებთ document-ამდე,
+        // თორემ "გარეთ დაჭერის" მსმენელი მაშინვე დახურავდა ფურცელს.
+        moreBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            hamburger.click();
+        });
+
+        scrim.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (navMenu.classList.contains('open')) hamburger.click();
+        });
+
+        // მენიუს მდგომარეობა რამდენიმე ადგილას იცვლება (Escape, ლინკი,
+        // გარეთ დაჭერა), ამიტომ კლასს ვადევნებთ თვალს და არა ცალკე ღილაკს.
+        const sync = () => {
+            const open = navMenu.classList.contains('open');
+            scrim.classList.toggle('is-visible', open);
+            moreBtn.classList.toggle('is-active', open);
+            moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            const icon = moreBtn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-bars', !open);
+                icon.classList.toggle('fa-xmark', open);
+            }
+        };
+        new MutationObserver(sync).observe(navMenu, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+        sync();
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', build);
+    } else {
+        build();
+    }
+})();

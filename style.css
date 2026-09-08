@@ -4187,3 +4187,261 @@ a.next-service .ns-where, .next-service a.ns-where {
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.95em;
 }
+
+/* ==========================================================================
+   MOBILE BOTTOM NAV — ტელეფონზე ჰედერს ეკრანის ქვედა ზოლი ცვლის
+   მარკაპს script.js ქმნის (ერთი წყარო ყველა გვერდისთვის), აქ მხოლოდ სტილია.
+   ========================================================================== */
+.mobile-tabbar,
+.mobile-nav-scrim {
+    display: none;
+}
+
+@media (max-width: 767px) {
+
+    /* ტელეფონზე ზედა ჰედერი აღარ ჩანს — ნავიგაცია ქვევით გადადის.
+       სრულად კი არ ვშლით: მენიუს ფურცელი (.nav-menu) მის შიგნითაა და
+       display:none მთელ შტოს გამორთავდა. ამიტომ ზოლს ვასუფთავებთ და
+       სიმაღლეს ვუნულებთ, ხილული ნაწილები კი ცალკე იმალება. */
+    .main-header,
+    .main-header.scrolled {
+        position: static !important;
+        height: 0 !important;
+        padding: 0 !important;
+        background: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        /* transform ფიქსირებულ შვილს მიაბამდა თავს — ამიტომ ვაუქმებთ */
+        transform: none !important;
+    }
+
+    .main-header .header-container {
+        display: block !important;
+        height: 0 !important;
+        padding: 0 !important;
+    }
+
+    .main-header .logo,
+    .main-header .hamburger,
+    .main-header .header-socials {
+        display: none !important;
+    }
+
+    /* ზოლი ფიქსირებულია, ამიტომ გვერდის ბოლოს იმდენივე ადგილს ვუტოვებთ */
+    body {
+        padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .mobile-tabbar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1150;
+        display: flex;
+        align-items: stretch;
+        height: calc(58px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        background: rgba(17, 17, 17, 0.98);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-top: 1px solid rgba(170, 149, 79, 0.22);
+        box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .mobile-tabbar__item {
+        flex: 1 1 0;
+        min-width: 0;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 2px;
+        margin: 0;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none !important;
+        font-family: 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif !important;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.25s ease, transform 0.18s ease;
+    }
+
+    .mobile-tabbar__item i {
+        font-size: 18px;
+        line-height: 1;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobile-tabbar__item span {
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    /* აქტიური ჩანართის ოქროსფერი ზოლი — ზოლის ზედა კიდეზე */
+    .mobile-tabbar__item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 26px;
+        height: 2px;
+        border-radius: 0 0 2px 2px;
+        background: var(--gold);
+        transform: translateX(-50%) scaleX(0);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobile-tabbar__item.is-active {
+        color: var(--gold);
+    }
+
+    .mobile-tabbar__item.is-active::before {
+        transform: translateX(-50%) scaleX(1);
+    }
+
+    .mobile-tabbar__item.is-active i {
+        transform: translateY(-1px);
+    }
+
+    .mobile-tabbar__item:active {
+        transform: scale(0.92);
+    }
+
+    /* "გაეცი" ყოველთვის ოქროსფერია — მთავარი მოწოდებაა */
+    .mobile-tabbar__item--give i {
+        color: var(--gold);
+    }
+
+    /* ── მენიუს ფურცელი: ქვევიდან ამოსრიალებული ფანჯარა ─────────────── */
+    .mobile-nav-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 1130;
+        display: block;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s ease;
+    }
+
+    .mobile-nav-scrim.is-visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .nav-menu {
+        display: flex !important;
+        position: fixed !important;
+        top: auto !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        max-height: min(70vh, 540px) !important;
+        padding: 26px 22px 24px !important;
+        border-radius: 18px 18px 0 0 !important;
+        border-top: 1px solid rgba(170, 149, 79, 0.28) !important;
+        box-shadow: 0 -18px 45px rgba(0, 0, 0, 0.55) !important;
+        z-index: 1140 !important;
+        transform: translateY(110%) !important;
+        visibility: hidden;
+        pointer-events: none;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s !important;
+    }
+
+    .nav-menu.open {
+        transform: translateY(0) !important;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    /* პატარა სახელური ფურცლის თავზე */
+    .nav-menu::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 42px;
+        height: 4px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.22);
+    }
+
+    .nav-menu .nav-list {
+        gap: 6px !important;
+    }
+
+    .nav-menu .nav-list a {
+        font-size: 15px !important;
+        padding: 12px 0 !important;
+    }
+
+    .nav-menu .dropdown-menu a {
+        font-size: 15px !important;
+    }
+
+    .mobile-socials {
+        margin-top: 22px !important;
+        padding-top: 18px !important;
+    }
+
+    .mobile-socials a {
+        width: 40px;
+        height: 40px;
+        font-size: 16px !important;
+    }
+
+    .nav-menu .nav-list li.nav-give-item {
+        margin-top: 14px !important;
+    }
+
+    /* ── ჰედერის გაუქმების თანმდევი შესწორებები ─────────────────────── */
+
+    /* ზედა ზოლი აღარ დგას, ამიტომ ბანერის ზედა შიდა არე მცირდება */
+    .hero-section {
+        padding-top: 44px !important;
+    }
+
+    /* მთავარი ბანერი მთელ ეკრანს იკავებს — ტექსტს ქვედა ზოლს ზემოთ ვწევთ */
+    #sanity-main-image.hero-section {
+        padding-bottom: calc(34px + 58px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    html {
+        scroll-padding-top: 20px !important;
+    }
+
+    /* ქვედა ზოლს ვერაფერი უნდა გადაეფაროს */
+    .back-to-top {
+        bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    .install-bar {
+        bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+
+    .mobile-tabbar__item,
+    .mobile-tabbar__item i,
+    .mobile-tabbar__item::before,
+    .nav-menu,
+    .mobile-nav-scrim {
+        transition: none !important;
+    }
+}
