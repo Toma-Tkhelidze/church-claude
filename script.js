@@ -915,12 +915,56 @@ window.unlockBodyScroll = function() {
 
     const swUrl = new URL('sw.js', src).href;
 
+    // მთავარ ეკრანზე დაინსტალირებულ აპს iOS მეხსიერებაში აჩერებს:
+    // ხატულაზე დაჭერა იმავე ძველ გვერდს აბრუნებს და განახლება
+    // შეიძლება დღეებით არ დაინახოს. ქვემოთ სამივე გამოსავალია —
+    // sw.js ქეშიდან აღარ იკითხება, ყოველ დაბრუნებაზე ვამოწმებთ
+    // ახალ ვერსიას და დიდი პაუზის შემდეგ გვერდს თავიდან ვტვირთავთ.
+    const RECHECK_MS = 60 * 1000;
+    const STALE_MS = 30 * 60 * 1000;
+
+    // ფორმის შევსების ან გახსნილი მოდალის დროს გადატვირთვა
+    // ნაშრომს გააქრობდა — ასეთ დროს ხელს არ ვახლებთ.
+    const isBusy = () => {
+        if (document.querySelector('.reg-modal.modal-active')) return true;
+        return [...document.querySelectorAll('input, textarea')].some(field => {
+            if (field.type === 'hidden' || field.type === 'checkbox' || field.type === 'radio') return false;
+            // წინასწარ ჩაწერილი მნიშვნელობა შევსება არ არის.
+            return field.value !== '' && field.value !== field.defaultValue;
+        });
+    };
+
     // რეგისტრაციას გვერდის ჩატვირთვის შემდეგ ვაკეთებთ, რომ პირველი
     // ჩვენებისთვის საჭირო ფაილებს არხი არ წაართვას.
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register(swUrl).catch(err => {
-            console.warn('Service worker რეგისტრაცია ვერ მოხერხდა:', err);
-        });
+        // updateViaCache: 'none' — თავად sw.js ყოველთვის ქსელიდან.
+        navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' })
+            .then(registration => {
+                let hiddenAt = 0;
+                let checkedAt = Date.now();
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'hidden') {
+                        hiddenAt = Date.now();
+                        return;
+                    }
+
+                    const away = hiddenAt ? Date.now() - hiddenAt : 0;
+
+                    // დიდხანს დახურული აპი უბრალოდ მოძველებულია.
+                    if (away > STALE_MS && !isBusy()) {
+                        window.location.reload();
+                        return;
+                    }
+
+                    if (Date.now() - checkedAt < RECHECK_MS) return;
+                    checkedAt = Date.now();
+                    registration.update().catch(() => {});
+                });
+            })
+            .catch(err => {
+                console.warn('Service worker რეგისტრაცია ვერ მოხერხდა:', err);
+            });
     });
 })();
 
