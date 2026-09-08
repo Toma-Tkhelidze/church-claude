@@ -407,6 +407,13 @@
 
         .resume-btn:hover { background: #96823f; transform: translateY(-1px); }
 
+        .resume-btn-icon {
+            flex: 0 0 auto;
+            width: 11px;
+            height: 13px;
+            fill: currentColor;
+        }
+
         @media (max-width: 700px) {
             .resume-bar {
                 flex-wrap: wrap;
@@ -454,6 +461,7 @@
             .resume-thumb { flex-basis: 76px; }
             .resume-body { flex: 1 1 auto; }
             .resume-btn {
+                position: relative;
                 width: 42px;
                 height: 42px;
                 padding: 0;
@@ -461,10 +469,19 @@
                 border-radius: 50%;
                 justify-content: center;
                 align-self: center;
-                /* წარწერა რჩება მკითხველი პროგრამებისთვის, თვალით კი ხატულაა */
-                font-size: 0;
             }
-            .resume-btn i { font-size: 0.95rem; }
+            /* წარწერა რჩება მკითხველი პროგრამებისთვის, თვალით კი ხატულაა */
+            .resume-btn-text {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                margin: -1px;
+                padding: 0;
+                overflow: hidden;
+                clip-path: inset(50%);
+                white-space: nowrap;
+            }
+            .resume-btn-icon { width: 13px; height: 15px; }
         }
 
         /* ვიწრო ტელეფონზე ტექსტს ადგილი აღარ რჩებოდა — ხატულას

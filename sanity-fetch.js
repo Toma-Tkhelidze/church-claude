@@ -1427,8 +1427,13 @@ function renderResumeBar() {
       // სრული ხანგრძლივობაც ჩანს, რომ ციფრები პლეერს გადაუმოწმდეს.
       '<span class="resume-meta">გაჩერდი <strong>' + formatWatchTime(unfinished.t) + '</strong>-ზე · დარჩა <strong>' + formatWatchTime(left) + '</strong> <span class="resume-total">(სულ ' + formatWatchTime(unfinished.d) + ')</span></span>' +
     '</span>' +
-    '<button type="button" class="resume-btn" data-video-id="' + escapeHtml(unfinished.id) + '">' +
-      '<i class="fa-solid fa-play" aria-hidden="true"></i>გაგრძელება' +
+    '<button type="button" class="resume-btn" data-video-id="' + escapeHtml(unfinished.id) + '" aria-label="ყურების გაგრძელება">' +
+      // ჩაშენებული SVG და არა Font Awesome: ტელეფონზე ღილაკი მხოლოდ
+      // ხატულაა და თუ შრიფტი ვერ ჩაიტვირთა, ცარიელი წრე რჩებოდა.
+      '<svg class="resume-btn-icon" viewBox="0 0 12 14" aria-hidden="true" focusable="false">' +
+        '<path d="M11.2 6.15 1.8.28A1 1 0 0 0 .3 1.13v11.74a1 1 0 0 0 1.5.85l9.4-5.87a1 1 0 0 0 0-1.7Z"/>' +
+      '</svg>' +
+      '<span class="resume-btn-text">გაგრძელება</span>' +
     '</button>';
 }
 
