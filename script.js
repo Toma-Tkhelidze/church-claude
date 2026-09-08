@@ -951,6 +951,9 @@ window.unlockBodyScroll = function() {
     // Facebook-ისა და Instagram-ის შიდა ბრაუზერს „Add to Home Screen“
     // საერთოდ არ აქვს — იქ ინსტრუქცია მხოლოდ დააბნევდა.
     const inApp = /FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(ua);
+    // iOS-ზე ყველა ბრაუზერი WebKit-ზეა, მაგრამ გაზიარების ღილაკი
+    // სხვადასხვა ადგილას უდევთ: Safari-ს ქვემოთ, Chrome-ს — მენიუში.
+    const iosOtherBrowser = isIOS && /CriOS|FxiOS|EdgiOS|OPT\//i.test(ua);
 
     let state;
     try {
@@ -993,12 +996,21 @@ window.unlockBodyScroll = function() {
         if (inApp) {
             action = '<p class="install-hint">ჯერ გახსენი Safari-ში: დააჭირე „•••“ და აირჩიე „Open in Safari“.</p>';
         } else if (isIOS) {
-            // ხატულა მინიშნებაა და არა ღილაკი — ამიტომ პირდაპირ წერია,
-            // რომ დასაჭერი ღილაკი გვერდზე კი არა, ბრაუზერის ზოლშია.
-            action = '<ol class="install-steps">'
-                + '<li>ქვემოთ, Safari-ს ზოლში დააჭირე ' + shareIcon + '</li>'
-                + '<li>აირჩიე „Add to Home Screen“</li>'
-                + '</ol>';
+            // iPhone-ზე ბმული ხშირად Chrome-ში იხსნება და არა Safari-ში.
+            // ღილაკი სხვაგან დევს, ამიტომ ნაბიჯებიც სხვაა — თორემ
+            // ინსტრუქცია იმას აღწერს, რასაც ვიზიტორი ეკრანზე ვერ ხედავს.
+            // ღილაკს სახელითაც ვასახელებთ: თუ ხატულა არ დაიხატა,
+            // წინადადება მაინც სრული რჩება.
+            action = iosOtherBrowser
+                ? '<ol class="install-steps">'
+                    + '<li>ზემოთ მარჯვნივ დააჭირე „•••“ და აირჩიე „Share“ ' + shareIcon + '</li>'
+                    + '<li>ჩამონათვალში აირჩიე „Add to Home Screen“</li>'
+                    + '<li class="install-note">თუ ვერ იპოვე — გახსენი იგივე გვერდი Safari-ში</li>'
+                    + '</ol>'
+                : '<ol class="install-steps">'
+                    + '<li>ეკრანის ბოლოში დააჭირე გაზიარების ღილაკს ' + shareIcon + ' — კვადრატი ისრით</li>'
+                    + '<li>ჩამონათვალი ჩამოქაჩე და აირჩიე „Add to Home Screen“</li>'
+                    + '</ol>';
         } else {
             action = '<button type="button" class="install-go">დამატება</button>';
         }

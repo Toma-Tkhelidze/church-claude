@@ -4178,3 +4178,12 @@ a.next-service .ns-where, .next-service a.ns-where {
 }
 
 .footer-install i { font-size: 0.95em; }
+
+/* ბოლო, დამხმარე ნაბიჯი — ჩუმად, რომ მთავარ ორს არ დაასწროს */
+.install-steps .install-note {
+    list-style: none;
+    margin-left: -18px;
+    margin-top: 6px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.95em;
+}
