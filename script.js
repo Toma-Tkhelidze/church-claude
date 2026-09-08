@@ -808,19 +808,22 @@ window.unlockBodyScroll = function() {
     const form = document.getElementById('newsletterForm');
     if (!box || !form) return;
 
-    // ── შესავსები ────────────────────────────────────────────────────
-    // action — ელფოსტის სერვისში შექმნილი ფორმის მისამართი.
-    //   Brevo:      Contacts → Forms → ფორმა → Share → HTML კოდში <form action="...">
-    //               (მაგ. https://sibforms.com/serve/MUIF...)
-    //   MailerLite: Forms → Embedded form → HTML კოდში <form action="...">
-    // emailField — ელფოსტის ველის name ატრიბუტი იმავე კოდიდან.
-    //   Brevo-ს ჩვეულებრივ „EMAIL“ აქვს, MailerLite-ს „fields[email]“.
+    // Brevo → Marketing → Forms → „საიტის ფუტერის გამოწერა“ → Share.
+    // კონტაქტები სიაში „ეკლესიის სიახლეები“ ჩადის.
+    //
+    // ველები თავად ფორმის გვერდიდანაა აღებული:
+    //   EMAIL                — ელფოსტა, ერთადერთი სავალდებულო
+    //   email_address_check  — ბოტების ხაფანგი: ცარიელი უნდა დარჩეს,
+    //                          შევსებული თხოვნა უარყოფილი იქნება
+    //   locale               — ფორმის ენა Brevo-ს მხარეს
     //
     // სანამ action ცარიელია, ბლოკი გვერდზე საერთოდ არ ჩანს — ასე
     // ვიზიტორი ცრუ დადასტურებას ვერ მიიღებს.
     const NEWSLETTER = {
-        action: '',
-        emailField: 'EMAIL'
+        action: 'https://ae3f7be6.sibforms.com/serve/MUIFAE3PBaVV10yVlxle1Cx4JMICIzxyHfVXXKtsDDtzQtbmh34K18dS2iq_fS6qo9cVDO_ox0zoUCBCDO_PUXw6Sce0WwZcN3zhtGjrHZ4jI_slLCo1XTv8Ri2plZ8foyOqi95uBLZ2B4uLaud1NTkJppbAvMqiT0A_UKAucozTT2Zfz6B8dKL0Zlw366X4gO9sA1l__aXYFRQCGg==',
+        emailField: 'EMAIL',
+        honeypotField: 'email_address_check',
+        locale: 'en'
     };
 
     if (!NEWSLETTER.action) {
@@ -873,6 +876,10 @@ window.unlockBodyScroll = function() {
 
         const data = new FormData();
         data.append(NEWSLETTER.emailField, value);
+        // ხაფანგი ცარიელი უნდა წავიდეს — Brevo სწორედ ამით არჩევს
+        // ცოცხალ ადამიანს ბოტისგან.
+        if (NEWSLETTER.honeypotField) data.append(NEWSLETTER.honeypotField, '');
+        if (NEWSLETTER.locale) data.append('locale', NEWSLETTER.locale);
 
         // no-cors — პასუხს ვერ წავიკითხავთ, მაგრამ მოთხოვნა მიდის.
         // იგივე ხერხია, რითაც დანარჩენი ფორმები მუშაობს.
@@ -880,7 +887,9 @@ window.unlockBodyScroll = function() {
             .then(() => {
                 form.reset();
                 setSending(false);
-                say('გმადლობთ! დამადასტურებელი წერილი ელფოსტაზე მოგივათ.', true);
+                // Brevo-ში ორმაგი დადასტურებაა ჩართული: კონტაქტი სიაში
+                // მხოლოდ მას შემდეგ ჩადის, რაც წერილში ბმულს დააჭერს.
+                say('გმადლობთ! ელფოსტაზე მოგივათ წერილი — გამოწერის დასადასტურებლად დააჭირეთ მასში მოცემულ ბმულს.', true);
             })
             .catch(err => {
                 console.error('გამოწერა ვერ მოხერხდა:', err);
