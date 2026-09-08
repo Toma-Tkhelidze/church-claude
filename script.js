@@ -946,7 +946,11 @@ window.unlockBodyScroll = function() {
         || window.navigator.standalone === true;
     if (installed) return;
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    // Facebook-ისა და Instagram-ის შიდა ბრაუზერს „Add to Home Screen“
+    // საერთოდ არ აქვს — იქ ინსტრუქცია მხოლოდ დააბნევდა.
+    const inApp = /FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(ua);
 
     let state;
     try {
@@ -972,7 +976,7 @@ window.unlockBodyScroll = function() {
 
     // ── ზოლი ────────────────────────────────────────────────────────
     function openBar() {
-        if (!deferred && !isIOS) return;
+        if (!deferred && !isIOS && !inApp) return;
         if (document.querySelector('.install-bar')) return;
 
         const bar = document.createElement('div');
@@ -980,17 +984,24 @@ window.unlockBodyScroll = function() {
         bar.setAttribute('role', 'dialog');
         bar.setAttribute('aria-label', 'აპლიკაციის დამატება');
 
-        const action = isIOS
-            ? `<p class="install-hint">
-                 დააჭირე
-                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                   <path d="M12 3v12M12 3l-4 4M12 3l4 4M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"
-                         fill="none" stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round"/>
-                 </svg>
-                 და აირჩიე „Add to Home Screen“
-               </p>`
-            : '<button type="button" class="install-go">დამატება</button>';
+        const shareIcon = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+            + '<path d="M12 3v12M12 3l-4 4M12 3l4 4M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"'
+            + ' fill="none" stroke="currentColor" stroke-width="2"'
+            + ' stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+        let action;
+        if (inApp) {
+            action = '<p class="install-hint">ჯერ გახსენი Safari-ში: დააჭირე „•••“ და აირჩიე „Open in Safari“.</p>';
+        } else if (isIOS) {
+            // ხატულა მინიშნებაა და არა ღილაკი — ამიტომ პირდაპირ წერია,
+            // რომ დასაჭერი ღილაკი გვერდზე კი არა, ბრაუზერის ზოლშია.
+            action = '<ol class="install-steps">'
+                + '<li>ქვემოთ, Safari-ს ზოლში დააჭირე ' + shareIcon + '</li>'
+                + '<li>აირჩიე „Add to Home Screen“</li>'
+                + '</ol>';
+        } else {
+            action = '<button type="button" class="install-go">დამატება</button>';
+        }
 
         bar.innerHTML = `
             <span class="install-icon" style="background-image:url('${iconUrl}')" aria-hidden="true"></span>
@@ -1069,7 +1080,7 @@ window.unlockBodyScroll = function() {
         const btn = document.querySelector('.footer-install');
         // Firefox-ს და სხვა ბრაუზერებს დაინსტალირება არ შეუძლიათ —
         // მათთვის ღილაკი დამალული რჩება.
-        if (btn) btn.hidden = !(deferred || isIOS);
+        if (btn) btn.hidden = !(deferred || isIOS || inApp);
     }
 
     if (document.readyState === 'loading') {

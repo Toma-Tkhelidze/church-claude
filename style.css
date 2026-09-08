@@ -4142,65 +4142,31 @@ a.next-service .ns-where, .next-service a.ns-where {
     color: var(--gold);
 }
 
-/* iOS-ზე ავტომატური დამატება არ არსებობს — მხოლოდ ვასწავლით */
-.install-hint {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 5px;
+/* iOS-ზე ავტომატური დამატება არ არსებობს — ნაბიჯებად ვწერთ,
+   რადგან დასაჭერი ღილაკი გვერდზე კი არა, ბრაუზერის ზოლშია */
+.install-steps {
     margin: 11px 0 0;
+    padding-left: 18px;
     color: var(--gold);
     font-size: 0.82rem;
-    line-height: 1.5;
+    line-height: 1.75;
 }
 
+.install-steps li { margin-bottom: 2px; }
+
+.install-steps svg,
 .install-hint svg {
     width: 15px;
     height: 15px;
-    flex: 0 0 auto;
+    vertical-align: -3px;
+    margin: 0 1px;
 }
 
-.install-close {
-    flex: 0 0 auto;
-    width: 30px;
-    height: 30px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: -4px -2px 0 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.45);
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: color 0.3s, background 0.3s;
-}
-
-.install-close:hover {
-    color: var(--white);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .install-bar { transition: opacity 0.2s; transform: none; }
-}
-
-/* ფუტერის ღილაკი — მუდმივი შესასვლელი დაინსტალირებისთვის.
-   ზოლისგან განსხვავებით, ეს არასოდეს ჩუმდება. */
-.footer-install {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.7);
-    font-family: inherit;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: color 0.3s, border-color 0.3s, background 0.3s;
+.install-hint {
+    margin: 11px 0 0;
+    color: var(--gold);
+    font-size: 0.82rem;
+    line-height: 1.6;
 }
 
 .footer-install[hidden] { display: none; }
