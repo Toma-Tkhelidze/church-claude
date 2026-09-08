@@ -4453,11 +4453,6 @@ a.next-service .ns-where, .next-service a.ns-where {
         transform: scale(0.92);
     }
 
-    /* "გაეცი" ყოველთვის ოქროსფერია — მთავარი მოწოდებაა */
-    .mobile-tabbar__item--give i {
-        color: var(--gold);
-    }
-
     /* ── მენიუს ფურცელი: ქვევიდან ამოსრიალებული ფანჯარა ─────────────── */
     .mobile-nav-scrim {
         position: fixed;

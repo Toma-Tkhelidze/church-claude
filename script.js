@@ -1133,7 +1133,7 @@ window.unlockBodyScroll = function() {
         const items = [
             { href: root + 'index.html', icon: 'fa-house', label: 'მთავარი' },
             { href: sub + 'sermons.html', icon: 'fa-play', label: 'ქადაგებები' },
-            { href: sub + 'give.html', icon: 'fa-hand-holding-heart', label: 'გაეცი', mod: 'give' },
+            { href: sub + 'give.html', icon: 'fa-hand-holding-heart', label: 'გაეცი' },
             { href: sub + 'contact.html', icon: 'fa-envelope', label: 'კონტაქტი' }
         ];
 
@@ -1146,8 +1146,7 @@ window.unlockBodyScroll = function() {
 
         items.forEach(item => {
             const link = document.createElement('a');
-            link.className = 'mobile-tabbar__item'
-                + (item.mod ? ' mobile-tabbar__item--' + item.mod : '');
+            link.className = 'mobile-tabbar__item';
             link.href = item.href;
             if (item.href.split('/').pop().toLowerCase() === here) {
                 link.classList.add('is-active');
