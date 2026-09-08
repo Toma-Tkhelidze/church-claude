@@ -1533,17 +1533,242 @@ video {
 /* ==========================================================================
    MINIMAL COPYRIGHT STRIP
    ========================================================================== */
-.minimal-copyright-strip {
+/* ==========================================================================
+   FOOTER
+   მსახურების განრიგი და მისამართი ზემოთ, საკონტაქტო სექციაშია — აქ
+   მხოლოდ ის, რაც იქ არაა: ნავიგაცია და გამოწერა.
+   ========================================================================== */
+.site-footer {
     background: var(--dark-900);
-    padding: 24px 20px;
-    text-align: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(170, 149, 79, 0.2);
 }
 
-.minimal-copyright-strip p {
+/* flex და არა grid: სანამ გამოწერის ბლოკი დამალულია, grid-ს მისი
+   სვეტი მაინც დარჩებოდა და მარჯვნივ ცარიელი ადგილი გამოჩნდებოდა. */
+.footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 64px 20px 48px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 48px;
+    align-items: flex-start;
+}
+
+.footer-brand {
+    flex: 1 1 200px;
+    max-width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.footer-logo {
+    display: block;
+    width: 58px;
+    height: 58px;
+}
+
+.footer-tagline {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.75;
+}
+
+.footer-nav {
+    flex: 2 1 320px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 24px;
+}
+
+.footer-col { min-width: 0; }
+
+.footer-heading {
+    margin: 0 0 14px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--gold);
+}
+
+/* ერთ სვეტში ორი ჯგუფია — მეორე სათაურს სიის შემდეგ ჰაერი სჭირდება */
+.footer-col ul + .footer-heading { margin-top: 26px; }
+
+.footer-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.footer-col a {
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+    font-size: 0.92rem;
+    transition: color 0.3s, padding-left 0.3s;
+}
+
+.footer-col a:hover {
+    color: var(--gold);
+    padding-left: 4px;
+}
+
+/* ── გამოწერა ────────────────────────────────────────────────────────── */
+.footer-subscribe { flex: 1 1 280px; }
+.footer-subscribe[hidden] { display: none; }
+
+.subscribe-note {
+    margin: 0 0 16px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+.subscribe-row {
+    display: flex;
+    gap: 8px;
+}
+
+.subscribe-row input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    color: var(--white);
+    font-family: inherit;
+    font-size: 0.9rem;
+    transition: border-color 0.3s, background 0.3s;
+}
+
+.subscribe-row input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+.subscribe-row input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.subscribe-btn {
+    flex: 0 0 auto;
+    width: 46px;
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    background: var(--gold);
+    color: var(--dark-900);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+}
+
+.subscribe-btn:hover:not(:disabled) {
+    background: transparent;
+    color: var(--gold);
+}
+
+.subscribe-btn:disabled { opacity: 0.6; cursor: default; }
+
+.subscribe-btn.is-sending .subscribe-icon {
+    animation: prayer-spin 0.9s linear infinite;
+}
+
+.subscribe-check {
+    display: flex;
+    gap: 9px;
+    margin-top: 12px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+}
+
+.subscribe-check input {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    accent-color: var(--gold);
+}
+
+.subscribe-msg {
+    margin: 12px 0 0;
+    font-size: 0.83rem;
+    line-height: 1.6;
+}
+
+.subscribe-msg[hidden] { display: none; }
+.subscribe-msg.is-error { color: #e2a08a; }
+.subscribe-msg.is-ok { color: var(--gold-light); }
+
+/* ── ქვედა ზოლი ──────────────────────────────────────────────────────── */
+.footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 20px 26px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.footer-copy {
+    margin: 0;
     font-size: 12px;
     color: #666;
     letter-spacing: 0.5px;
+}
+
+.footer-social {
+    display: flex;
+    gap: 10px;
+}
+
+.footer-social a {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+
+.footer-social a:hover {
+    color: var(--dark-900);
+    background: var(--gold);
+    border-color: var(--gold);
+}
+
+@media (max-width: 991px) {
+    .footer-inner {
+        flex-direction: column;
+        gap: 36px;
+        padding: 48px 20px 36px;
+    }
+
+    .footer-brand { max-width: none; }
+}
+
+@media (max-width: 560px) {
+    .footer-nav { gap: 26px 18px; }
+
+    /* ნავბარში სოციალური ქსელები ჰამბურგერის უკან იმალება — მობილურზე
+       ფუტერი ერთადერთი ადგილია, სადაც ისინი მუდამ ჩანს. */
+    .footer-bottom {
+        flex-direction: column-reverse;
+        align-items: center;
+        text-align: center;
+    }
 }
 
 /* ==========================================================================

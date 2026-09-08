@@ -517,9 +517,83 @@
 </section>
 
 
-<div class="minimal-copyright-strip">
-    <p>© 2026 სახარების რწმენის ეკლესია – ქუთაისი. ყველა უფლება დაცულია.</p>
-</div>
+<footer class="site-footer">
+    <div class="footer-inner">
+
+        <div class="footer-brand">
+            <img class="footer-logo" src="images/logo.svg" alt="" width="58" height="58">
+            <p class="footer-tagline">ბიბლიაზე დაფუძნებული საზოგადოება ქუთაისში.<br>შენი ადგილი აქ არის.</p>
+        </div>
+
+        <nav class="footer-nav" aria-label="ფუტერის ნავიგაცია">
+            <div class="footer-col">
+                <h3 class="footer-heading">ჩვენს შესახებ</h3>
+                <ul>
+                    <li><a href="about.html">ვინ ვართ ჩვენ</a></li>
+                    <li><a href="team.html">მსახურთა გუნდი</a></li>
+                    <li><a href="contact.html">დაგვიკავშირდი</a></li>
+                </ul>
+                <h3 class="footer-heading">შემოგვიერთდი</h3>
+                <ul>
+                    <li><a href="new-here.html">მე ახალი ვარ აქ</a></li>
+                    <li><a href="next-steps.html">რა არის შემდეგი ნაბიჯი</a></li>
+                    <li><a href="registration.html">რეგისტრაცია</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h3 class="footer-heading">მსახურებები</h3>
+                <ul>
+                    <li><a href="family-groups.html">საოჯახო ჯგუფები</a></li>
+                    <li><a href="youth.html">ახალგაზრდული</a></li>
+                    <li><a href="kids.html">ბავშვები</a></li>
+                    <li><a href="consultation.html">კონსულტაცია</a></li>
+                </ul>
+                <h3 class="footer-heading">რესურსები</h3>
+                <ul>
+                    <li><a href="sermons.html">ქადაგებები</a></li>
+                    <li><a href="https://holybible.ge/geo/bible/%E1%83%90%E1%83%AE%E1%83%90%E1%83%9A%E1%83%98-%E1%83%92%E1%83%90%E1%83%93%E1%83%90%E1%83%9B%E1%83%A3%E1%83%A8%E1%83%90%E1%83%95%E1%83%94%E1%83%91%E1%83%A3%E1%83%9B%E1%83%A5-%E1%83%92%E1%83%9B%E1%83%9D%E1%83%AA%E1%83%9B%E1%83%90-2015/1/0/0/0/1" target="_blank" rel="noopener noreferrer">ონლაინ ბიბლია</a></li>
+                    <li><a href="https://live.bible.is/bible/KATGNT/MAT/1" target="_blank" rel="noopener noreferrer">აუდიო ბიბლია</a></li>
+                    <li><a href="give.html">გაეცი</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- გამოწერა. ფორმის მისამართი script.js-შია — სანამ ის ცარიელია,
+             ეს ბლოკი დამალულია და ცრუ დადასტურებას არავის აჩვენებს. -->
+        <div class="footer-subscribe" id="footerSubscribe" hidden>
+            <h3 class="footer-heading">გამოწერა</h3>
+            <p class="subscribe-note">ახალი ქადაგება და კვირის მუხლი ელფოსტაზე, კვირაში ერთხელ.</p>
+
+            <form id="newsletterForm" novalidate>
+                <div class="subscribe-row">
+                    <label class="visually-hidden" for="newsletterEmail">ელფოსტა</label>
+                    <input type="email" id="newsletterEmail" autocomplete="email"
+                           maxlength="180" required placeholder="შენი ელფოსტა">
+                    <button type="submit" class="subscribe-btn" aria-label="გამოწერა">
+                        <i class="fa-solid fa-arrow-right subscribe-icon" aria-hidden="true"></i>
+                    </button>
+                </div>
+
+                <label class="subscribe-check">
+                    <input type="checkbox" id="newsletterConsent" required>
+                    <span>თანხმობას ვაძლევ, რომ მივიღო წერილები ეკლესიისგან. გამოწერის გაუქმება ნებისმიერ დროს შემიძლია.</span>
+                </label>
+
+                <p class="subscribe-msg" role="status" hidden></p>
+            </form>
+        </div>
+
+    </div>
+
+    <div class="footer-bottom">
+        <p class="footer-copy">© 2026 სახარების რწმენის ეკლესია – ქუთაისი. ყველა უფლება დაცულია.</p>
+        <div class="footer-social">
+            <a href="https://www.facebook.com/efchurchofkutaisi" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+            <a href="https://www.instagram.com/efckyouth/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+            <a href="https://www.youtube.com/@EFC-Kutaisi" aria-label="YouTube" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-youtube" aria-hidden="true"></i></a>
+        </div>
+    </div>
+</footer>
 
 <button class="back-to-top" aria-label="ზემოთ ასვლა" title="ზემოთ ასვლა">
     <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>

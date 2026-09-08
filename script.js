@@ -797,3 +797,95 @@ window.unlockBodyScroll = function() {
             });
     });
 })();
+
+
+// ══ ფუტერის გამოწერა ═══════════════════════════════════════════════
+// მისამართები ელფოსტის სერვისში ინახება (Brevo ან MailerLite), არა
+// საიტზე — გამოწერის გაუქმებას, ორმაგ დადასტურებას და დაგზავნას იქაური
+// ინსტრუმენტები აკეთებს. აქ მხოლოდ ფორმის გაგზავნაა.
+(function () {
+    const box = document.getElementById('footerSubscribe');
+    const form = document.getElementById('newsletterForm');
+    if (!box || !form) return;
+
+    // ── შესავსები ────────────────────────────────────────────────────
+    // action — ელფოსტის სერვისში შექმნილი ფორმის მისამართი.
+    //   Brevo:      Contacts → Forms → ფორმა → Share → HTML კოდში <form action="...">
+    //               (მაგ. https://sibforms.com/serve/MUIF...)
+    //   MailerLite: Forms → Embedded form → HTML კოდში <form action="...">
+    // emailField — ელფოსტის ველის name ატრიბუტი იმავე კოდიდან.
+    //   Brevo-ს ჩვეულებრივ „EMAIL“ აქვს, MailerLite-ს „fields[email]“.
+    //
+    // სანამ action ცარიელია, ბლოკი გვერდზე საერთოდ არ ჩანს — ასე
+    // ვიზიტორი ცრუ დადასტურებას ვერ მიიღებს.
+    const NEWSLETTER = {
+        action: '',
+        emailField: 'EMAIL'
+    };
+
+    if (!NEWSLETTER.action) {
+        console.info('გამოწერის ფორმა გამორთულია: script.js-ში NEWSLETTER.action ცარიელია.');
+        return;
+    }
+
+    box.hidden = false;
+
+    const email = document.getElementById('newsletterEmail');
+    const consent = document.getElementById('newsletterConsent');
+    const submit = form.querySelector('.subscribe-btn');
+    const icon = form.querySelector('.subscribe-icon');
+    const msg = form.querySelector('.subscribe-msg');
+
+    const setSending = on => {
+        submit.disabled = on;
+        submit.classList.toggle('is-sending', on);
+        icon.className = on
+            ? 'fa-solid fa-circle-notch subscribe-icon'
+            : 'fa-solid fa-arrow-right subscribe-icon';
+    };
+
+    const say = (text, ok) => {
+        msg.textContent = text;
+        msg.classList.toggle('is-ok', !!ok);
+        msg.classList.toggle('is-error', !ok);
+        msg.hidden = false;
+    };
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        msg.hidden = true;
+
+        const value = email.value.trim();
+        // ბრაუზერის type="email" შემოწმებას ვენდობით, აქ მხოლოდ
+        // ცარიელი ველი და აშკარა შეცდომა გვაინტერესებს.
+        if (!value || !email.checkValidity()) {
+            say('გთხოვთ, მიუთითოთ სწორი ელფოსტა.');
+            email.focus();
+            return;
+        }
+        if (!consent.checked) {
+            say('გამოწერისთვის საჭიროა თანხმობის მონიშვნა.');
+            consent.focus();
+            return;
+        }
+
+        setSending(true);
+
+        const data = new FormData();
+        data.append(NEWSLETTER.emailField, value);
+
+        // no-cors — პასუხს ვერ წავიკითხავთ, მაგრამ მოთხოვნა მიდის.
+        // იგივე ხერხია, რითაც დანარჩენი ფორმები მუშაობს.
+        fetch(NEWSLETTER.action, { method: 'POST', body: data, mode: 'no-cors' })
+            .then(() => {
+                form.reset();
+                setSending(false);
+                say('გმადლობთ! დამადასტურებელი წერილი ელფოსტაზე მოგივათ.', true);
+            })
+            .catch(err => {
+                console.error('გამოწერა ვერ მოხერხდა:', err);
+                setSending(false);
+                say('დაფიქსირდა ხარვეზი. სცადეთ მოგვიანებით.');
+            });
+    });
+})();
