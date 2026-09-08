@@ -925,11 +925,12 @@ window.unlockBodyScroll = function() {
 })();
 
 
-// ══ მთავარ ეკრანზე დამატების შეთავაზება ════════════════════════════
-// ზოლი მხოლოდ მაშინ ჩნდება, როცა ნამდვილად აზრი აქვს: მობილურზე,
-// მეორე ვიზიტიდან, თუ აპლიკაცია ჯერ დაინსტალირებული არაა და
-// ვიზიტორს ადრე უარი არ უთქვამს. დახურვის შემდეგ სამი თვე ჩუმდება —
-// ერთხელ უარის თქმა საკმარისი პასუხია.
+// ══ მთავარ ეკრანზე დამატება ════════════════════════════════════════
+// ორი შესასვლელი აქვს:
+//   1. ავტომატური ზოლი — მობილურზე, მეორე ვიზიტიდან, 15 წამის შემდეგ.
+//      უარის თქმის შემდეგ სამი თვე ჩუმდება.
+//   2. ფუტერის ღილაკი — ყოველთვის ხელმისაწვდომი. ვინც ზოლი დახურა და
+//      მერე გადაიფიქრა, სამ თვეს არ უნდა ელოდოს.
 (function () {
     const KEY = 'efck:install:v1';
     const QUIET_DAYS = 90;
@@ -940,13 +941,10 @@ window.unlockBodyScroll = function() {
     if (!src) return;
     const iconUrl = new URL('icons/icon-192.png', src).href;
 
-    // უკვე დაინსტალირებულია — არაფერს ვთავაზობთ.
+    // უკვე დაინსტალირებულია — არც ზოლი გვჭირდება, არც ღილაკი.
     const installed = window.matchMedia('(display-mode: standalone)').matches
         || window.navigator.standalone === true;
     if (installed) return;
-
-    const isMobile = window.matchMedia('(max-width: 991px)').matches;
-    if (!isMobile) return;
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
@@ -957,28 +955,24 @@ window.unlockBodyScroll = function() {
         state = {};
     }
     if (typeof state.visits !== 'number') state.visits = 0;
-
     state.visits += 1;
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
 
-    if (state.visits < MIN_VISITS) return;
-    if (state.dismissedAt && Date.now() - state.dismissedAt < QUIET_DAYS * 864e5) return;
+    function save() {
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+    }
+    save();
 
-    // Android/Chrome ამ მოვლენას თავად აგზავნის. iOS-ზე ის არ არსებობს —
-    // იქ მხოლოდ ხელით დამატების მინიშნებას ვაჩვენებთ.
+    // Android/Chrome ამ მოვლენას თავად აგზავნის; iOS-ზე ის არ არსებობს.
     let deferred = null;
     window.addEventListener('beforeinstallprompt', e => {
         e.preventDefault();
         deferred = e;
+        showFooterLink();
     });
 
-    function remember(field) {
-        state[field] = Date.now();
-        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
-    }
-
-    function show() {
-        if (!deferred && !isIOS) return;      // ვერც ვთავაზობთ, ვერც ვასწავლით
+    // ── ზოლი ────────────────────────────────────────────────────────
+    function openBar() {
+        if (!deferred && !isIOS) return;
         if (document.querySelector('.install-bar')) return;
 
         const bar = document.createElement('div');
@@ -1021,7 +1015,8 @@ window.unlockBodyScroll = function() {
         };
 
         bar.querySelector('.install-close').addEventListener('click', () => {
-            remember('dismissedAt');
+            state.dismissedAt = Date.now();
+            save();
             close();
         });
 
@@ -1033,14 +1028,60 @@ window.unlockBodyScroll = function() {
                 deferred.prompt();
                 deferred.userChoice
                     .then(res => {
-                        // უარიც პასუხია — თავიდან აღარ შევაწუხებთ.
-                        if (res && res.outcome !== 'accepted') remember('dismissedAt');
+                        // უარიც პასუხია — ავტომატურად აღარ შევაწუხებთ.
+                        if (res && res.outcome !== 'accepted') {
+                            state.dismissedAt = Date.now();
+                            save();
+                        }
                         deferred = null;
+                        showFooterLink();
                     })
                     .catch(() => { deferred = null; });
             });
         }
     }
 
-    setTimeout(show, DELAY_MS);
+    // ── ფუტერის ღილაკი ──────────────────────────────────────────────
+    function mountFooterLink() {
+        const strip = document.querySelector('.footer-bottom');
+        if (!strip || strip.querySelector('.footer-install')) return;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'footer-install';
+        btn.hidden = true;
+        btn.innerHTML = '<i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>'
+            + '<span>აპლიკაციის დაყენება</span>';
+
+        // ჯვრით დახურვა ზოლს ჩუმდება, ღილაკს კი არა — აქედან
+        // ნებისმიერ დროს შეიძლება ხელახლა გახსნა.
+        btn.addEventListener('click', () => {
+            const bar = document.querySelector('.install-bar');
+            if (bar) bar.remove();
+            openBar();
+        });
+
+        strip.insertBefore(btn, strip.querySelector('.footer-social'));
+        showFooterLink();
+    }
+
+    function showFooterLink() {
+        const btn = document.querySelector('.footer-install');
+        // Firefox-ს და სხვა ბრაუზერებს დაინსტალირება არ შეუძლიათ —
+        // მათთვის ღილაკი დამალული რჩება.
+        if (btn) btn.hidden = !(deferred || isIOS);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mountFooterLink);
+    } else {
+        mountFooterLink();
+    }
+
+    // ავტომატური ზოლი მხოლოდ მობილურზე და მხოლოდ დათქმულ პირობებში.
+    const isMobile = window.matchMedia('(max-width: 991px)').matches;
+    const quiet = state.dismissedAt && Date.now() - state.dismissedAt < QUIET_DAYS * 864e5;
+    if (isMobile && state.visits >= MIN_VISITS && !quiet) {
+        setTimeout(openBar, DELAY_MS);
+    }
 })();

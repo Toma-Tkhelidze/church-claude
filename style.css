@@ -4185,3 +4185,30 @@ a.next-service .ns-where, .next-service a.ns-where {
 @media (prefers-reduced-motion: reduce) {
     .install-bar { transition: opacity 0.2s; transform: none; }
 }
+
+/* ფუტერის ღილაკი — მუდმივი შესასვლელი დაინსტალირებისთვის.
+   ზოლისგან განსხვავებით, ეს არასოდეს ჩუმდება. */
+.footer-install {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: color 0.3s, border-color 0.3s, background 0.3s;
+}
+
+.footer-install[hidden] { display: none; }
+
+.footer-install:hover {
+    color: var(--gold);
+    border-color: rgba(170, 149, 79, 0.5);
+    background: rgba(170, 149, 79, 0.08);
+}
+
+.footer-install i { font-size: 0.95em; }
