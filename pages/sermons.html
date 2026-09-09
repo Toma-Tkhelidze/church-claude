@@ -91,6 +91,64 @@
             padding: 80px 20px;
             background: var(--bg-light);
         }
+        /* ვიდეოს ადგილას მდგარი სურათი — დაჭერამდე პლეერი არ იტვირთება */
+        .player-facade {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            border: 0;
+            background: #111;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .player-facade__thumb {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-facade__play {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: rgba(170, 149, 79, 0.92);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+        }
+
+        .player-facade__play svg {
+            width: 22px;
+            height: 26px;
+            fill: #ffffff;
+            margin-left: 4px;
+        }
+
+        .player-facade:hover .player-facade__play {
+            transform: scale(1.08);
+            background: #aa954f;
+        }
+
+        .player-facade:active .player-facade__play {
+            transform: scale(0.96);
+        }
+
+        @media (max-width: 560px) {
+            .player-facade__play { width: 60px; height: 60px; }
+            .player-facade__play svg { width: 18px; height: 21px; }
+        }
+
         .player-wrapper {
             max-width: 960px;
             margin: 0 auto;
@@ -1629,14 +1687,27 @@
     <section class="main-player-section" id="playerZone">
         <div class="player-wrapper">
             <div class="video-container">
+                <!-- YouTube-ის პლეერი მეგაბაიტზე მეტია და გვერდის გახსნას
+                     აჭიანურებდა. ჯერ მხოლოდ სურათი დგას, ვიდეო კი დაჭერისას
+                     ჩაიტვირთება — playSermon() თავად ცვლის ერთმანეთით. -->
+                <button type="button" class="player-facade" id="sermonFacade"
+                        data-video-id="qj7EVIvEEhI" aria-label="ქადაგების დაკვრა">
+                    <img class="player-facade__thumb" alt="" decoding="async"
+                         src="https://img.youtube.com/vi/qj7EVIvEEhI/maxresdefault.jpg"
+                         onerror="this.onerror=null; this.src='https://img.youtube.com/vi/' + this.closest('.player-facade').dataset.videoId + '/hqdefault.jpg';">
+                    <span class="player-facade__play" aria-hidden="true">
+                        <svg viewBox="0 0 12 14"><path d="M11.2 6.15 1.8.28A1 1 0 0 0 .3 1.13v11.74a1 1 0 0 0 1.5.85l9.4-5.87a1 1 0 0 0 0-1.7Z"/></svg>
+                    </span>
+                </button>
                 <!-- enablejsapi=1 — ამის გარეშე დაკვრის დროს ვერ წავიკითხავთ
-                     და „სად გაჩერდი“ ვერ დაგვემახსოვრება -->
+                     და „სად გაჩერდი“ ვერ დაგვემახსოვრება. src ცარიელია:
+                     მისამართს playSermon() წერს პირველი დაჭერისას. -->
                 <iframe
                     id="mainSermonPlayer"
-                    src="https://www.youtube-nocookie.com/embed/qj7EVIvEEhI?rel=0&modestbranding=1&enablejsapi=1&vq=hd1080"
+                    title="ქადაგების ვიდეო"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     referrerpolicy="strict-origin-when-cross-origin"
-                    allowfullscreen>
+                    allowfullscreen hidden>
                 </iframe>
             </div>
         </div>
@@ -1977,9 +2048,8 @@
 <script src="../script.js"></script>
 <script src="../sanity-fetch.js"></script>
 <script src="../podcast.js"></script>
-<!-- YouTube-ის IFrame API — მისი გარეშე დაკვრის დრო არ იკითხება.
-     onYouTubeIframeAPIReady sanity-fetch.js-შია, ამიტომ ის წინ უნდა იდგეს. -->
-<script src="https://www.youtube.com/iframe_api"></script>
+<!-- YouTube-ის IFrame API აღარ იტვირთება წინასწარ: მას sanity-fetch.js
+     პირველი დაკვრისთანავე ამატებს (loadYouTubeApi). -->
 
 
 

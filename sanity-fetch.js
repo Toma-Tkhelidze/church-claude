@@ -190,10 +190,7 @@ function applyLatestSermonId(sermonId) {
     }
   });
 
-  const mainPlayer = document.getElementById('mainSermonPlayer');
-  if (mainPlayer && !(mainPlayer.src || '').includes(sermonId)) {
-    mainPlayer.src = `https://www.youtube-nocookie.com/embed/${sermonId}?rel=0&modestbranding=1&vq=hd1080`;
-  }
+  setSermonFacade(sermonId);
 }
 
 // CMS ტექსტი HTML-ში ჩასმამდე უნდა გაიწმინდოს.
@@ -622,12 +619,9 @@ function updatePageContent() {
             // Main Sermon Player falls back to the first Sanity episode only
             // when neither the playlist feed nor latestSermonUrl gave an id.
             if (!sermonId && sermons && sermons.length > 0) {
-              const mainPlayer = document.getElementById('mainSermonPlayer');
               const firstEpisode = sermons[0]?.episodes?.[0];
               const fallbackId = firstEpisode ? getYouTubeId(firstEpisode.youtubeUrl) : null;
-              if (mainPlayer && fallbackId) {
-                mainPlayer.src = `https://www.youtube-nocookie.com/embed/${fallbackId}?rel=0&modestbranding=1&vq=hd1080`;
-              }
+              if (fallbackId) setSermonFacade(fallbackId);
             }
           });
 
@@ -1328,6 +1322,34 @@ window.onYouTubeIframeAPIReady = function () {
   });
 };
 
+/** სურათი, რომელიც პლეერის ადგილას დგას დაკვრის დაწყებამდე. */
+function setSermonFacade(videoId) {
+  const facade = document.getElementById('sermonFacade');
+  // დაკვრა თუ უკვე დაიწყო, სურათს აღარ ვცვლით — პლეერი უკან არ უნდა დაბრუნდეს.
+  if (!facade || facade.hidden || !videoId) return;
+  facade.dataset.videoId = videoId;
+  const img = facade.querySelector('.player-facade__thumb');
+  if (img) img.src = 'https://img.youtube.com/vi/' + encodeURIComponent(videoId) + '/maxresdefault.jpg';
+}
+
+/** სურათს პლეერით ვცვლით. */
+function revealSermonPlayer() {
+  const facade = document.getElementById('sermonFacade');
+  const frame = sermonFrame();
+  if (facade) facade.hidden = true;
+  if (frame) frame.hidden = false;
+}
+
+/** YouTube-ის API მხოლოდ პირველი დაკვრისას გვჭირდება. */
+let ytApiRequested = false;
+function loadYouTubeApi() {
+  if (ytApiRequested || (window.YT && window.YT.Player)) return;
+  ytApiRequested = true;
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+}
+
 /** ქადაგების გახსნა მთავარ პლეერში, შენახული წუთიდან. */
 function playSermon(videoId, title) {
   const frame = sermonFrame();
@@ -1345,6 +1367,8 @@ function playSermon(videoId, title) {
   } else {
     frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) +
       '?rel=0&modestbranding=1&autoplay=1&enablejsapi=1&vq=hd1080' + (start ? '&start=' + start : '');
+    revealSermonPlayer();
+    loadYouTubeApi();
   }
 
   document.querySelectorAll('.weekly-item, .episode-item').forEach(el => {
@@ -1443,6 +1467,14 @@ function initSermonWatch() {
   // საიტიდან გასვლისას ბოლო წამები რომ არ დაიკარგოს.
   window.addEventListener('pagehide', recordWatchNow);
   document.addEventListener('visibilitychange', () => { if (document.hidden) recordWatchNow(); });
+
+  const facade = document.getElementById('sermonFacade');
+  if (facade) {
+    facade.addEventListener('click', () => {
+      const id = facade.dataset.videoId;
+      if (id) playSermon(id, '');
+    });
+  }
 
   const box = document.getElementById('resumeBar');
   if (box) {
