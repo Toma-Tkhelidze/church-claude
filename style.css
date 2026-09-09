@@ -7,6 +7,9 @@
     src: url('fonts/FiraGO-SemiBold.otf') format('truetype');
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -15,6 +18,9 @@
     font-feature-settings: "case" on;
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -23,6 +29,9 @@
     font-feature-settings: "case" on;
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -30,6 +39,9 @@
     src: url('fonts/FiraGO-MediumItalic.otf') format('OpenType');
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -37,6 +49,9 @@
     src: url('fonts/BPG%20Glaho.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -44,6 +59,9 @@
     src: url('fonts/BPG%20Glaho%20Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -51,6 +69,9 @@
     src: url('fonts/NotoSansGeorgian-Medium.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -58,6 +79,9 @@
     src: url('fonts/NotoSansGeorgian-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -65,6 +89,9 @@
     src: url('fonts/NotoSansGeorgian-SemiBold.ttf') format('truetype');
     font-weight: 600;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -72,6 +99,9 @@
     src: url('fonts/NotoSansGeorgian-SemiBold.ttf') format('truetype');
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 /* ==========================================================================
@@ -763,6 +793,9 @@ ul {
     src: url('fonts/FiraGO-Bold.otf') format('OpenType');
     font-weight: normal;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 @font-face {
@@ -770,6 +803,9 @@ ul {
     src: url('fonts/FiraGO-Medium.otf') format('OpenType');
     font-weight: bold;
     font-style: normal;
+    /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
+       ამის გარეშე ბრაუზერი 3 წამამდე მალავდა ყველა ასოს */
+    font-display: swap;
 }
 
 .welcome-banner.floating-banner {
