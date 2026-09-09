@@ -4,7 +4,7 @@
 @font-face {
     font-family: 'FiraGO-SemiBold';
     /* 🌟 GitHub-ისთვის უფრო უსაფრთხოა გამოტოვებული ადგილის ნაცვლად %20-ის ჩაწერა */
-    src: url('fonts/FiraGO-SemiBold.otf') format('truetype');
+    src: url('fonts/FiraGO-SemiBold.woff2') format('woff2');
     font-weight: bold;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -14,7 +14,7 @@
 
 @font-face {
     font-family: 'FiraGO-Medium';
-    src: url('fonts/FiraGO-Medium.otf') format('OpenType');
+    src: url('fonts/FiraGO-Medium.woff2') format('woff2');
     font-feature-settings: "case" on;
     font-weight: bold;
     font-style: normal;
@@ -25,7 +25,7 @@
 
 @font-face {
     font-family: 'FiraGO-MediumItalic';
-    src: url('fonts/FiraGO-MediumItalic.otf') format('OpenType');
+    src: url('fonts/FiraGO-MediumItalic.woff2') format('woff2');
     font-feature-settings: "case" on;
     font-weight: bold;
     font-style: normal;
@@ -36,7 +36,7 @@
 
 @font-face {
     font-family: 'FiraGOMediumItalic';
-    src: url('fonts/FiraGO-MediumItalic.otf') format('OpenType');
+    src: url('fonts/FiraGO-MediumItalic.woff2') format('woff2');
     font-weight: bold;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -46,7 +46,7 @@
 
 @font-face {
     font-family: 'BPGglaho';
-    src: url('fonts/BPG%20Glaho.ttf') format('truetype');
+    src: url('fonts/BPG%20Glaho.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -56,7 +56,7 @@
 
 @font-face {
     font-family: 'BPGglaho';
-    src: url('fonts/BPG%20Glaho%20Bold.ttf') format('truetype');
+    src: url('fonts/BPG%20Glaho%20Bold.woff2') format('woff2');
     font-weight: bold;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -66,7 +66,7 @@
 
 @font-face {
     font-family: 'NotoSansGeorgian';
-    src: url('fonts/NotoSansGeorgian-Medium.ttf') format('truetype');
+    src: url('fonts/NotoSansGeorgian-Medium.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -76,7 +76,7 @@
 
 @font-face {
     font-family: 'NotoSansGeorgian';
-    src: url('fonts/NotoSansGeorgian-Medium.ttf') format('truetype');
+    src: url('fonts/NotoSansGeorgian-Medium.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -86,7 +86,7 @@
 
 @font-face {
     font-family: 'NotoSansGeorgian';
-    src: url('fonts/NotoSansGeorgian-SemiBold.ttf') format('truetype');
+    src: url('fonts/NotoSansGeorgian-SemiBold.woff2') format('woff2');
     font-weight: 600;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -96,7 +96,7 @@
 
 @font-face {
     font-family: 'NotoSansGeorgian';
-    src: url('fonts/NotoSansGeorgian-SemiBold.ttf') format('truetype');
+    src: url('fonts/NotoSansGeorgian-SemiBold.woff2') format('woff2');
     font-weight: bold;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -790,7 +790,7 @@ ul {
 /* 1. ფონტის იზოლირებული რეგისტრაცია სპეციალურად ამ ბანერისთვის */
 @font-face {
     font-family: 'FiraGoBold';
-    src: url('fonts/FiraGO-Bold.otf') format('OpenType');
+    src: url('fonts/FiraGO-Bold.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
@@ -800,7 +800,7 @@ ul {
 
 @font-face {
     font-family: 'FiraGoMedium';
-    src: url('fonts/FiraGO-Medium.otf') format('OpenType');
+    src: url('fonts/FiraGO-Medium.woff2') format('woff2');
     font-weight: bold;
     font-style: normal;
     /* ტექსტი მაშინვე ჩანს სათადარიგო შრიფტით და შემდეგ ფირაზე გადადის —
