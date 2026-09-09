@@ -1261,6 +1261,8 @@ function formatWatchTime(seconds) {
 // დაწყების წერტილს მაშინ URL-ის &start= გადასცემს.
 
 let ytPlayer = null;
+// true, როცა დაკვრა ვიზიტორის დაჭერით დაიწყო.
+let ytWantsPlay = false;
 let ytPollTimer = null;
 let ytPendingTitle = '';
 
@@ -1316,7 +1318,14 @@ window.onYouTubeIframeAPIReady = function () {
   if (!sermonFrame() || !window.YT || !YT.Player) return;
   ytPlayer = new YT.Player('mainSermonPlayer', {
     events: {
-      onReady: refreshWatchUI,
+      onReady: function (event) {
+        refreshWatchUI();
+        // ვიზიტორმა დაკვრა უკვე ითხოვა — თუ ბრაუზერმა ავტომატური
+        // გაშვება არ დაუშვა, აქ ვასწორებთ.
+        if (ytWantsPlay && event && event.target && event.target.playVideo) {
+          try { event.target.playVideo(); } catch (e) { /* ბრაუზერმა უარი თქვა */ }
+        }
+      },
       onStateChange: onSermonStateChange
     }
   });
@@ -1365,9 +1374,16 @@ function playSermon(videoId, title) {
   if (ytPlayer && ytPlayer.loadVideoById) {
     ytPlayer.loadVideoById({ videoId: videoId, startSeconds: start });
   } else {
-    frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) +
-      '?rel=0&modestbranding=1&autoplay=1&enablejsapi=1&vq=hd1080' + (start ? '&start=' + start : '');
+    // playsinline=1 — ამის გარეშე iPhone ვიდეოს სრულ ეკრანზე ითხოვს და
+    // ავტომატურ დაკვრას ბლოკავს: ხალხს YouTube-ის თავისი play-ღილაკის
+    // დაჭერა უწევდა. ytWantsPlay კი მეორე დაზღვევაა — პლეერის მზადყოფნისას
+    // დაკვრას თავად ვთხოვთ.
+    // ჯერ ვაჩენთ, მერე ვტვირთავთ: დამალულ ჩარჩოში ჩატვირთული ვიდეო
+    // iPhone-ს დაჭერის ნებართვად არ ჩაეთვლება.
+    ytWantsPlay = true;
     revealSermonPlayer();
+    frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId) +
+      '?rel=0&modestbranding=1&autoplay=1&playsinline=1&enablejsapi=1&vq=hd1080' + (start ? '&start=' + start : '');
     loadYouTubeApi();
   }
 
