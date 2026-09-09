@@ -2146,6 +2146,19 @@ video {
         height: 360px;
     }
 
+    /* ვიწრო ბარათში „ახალგაზრდული“ სულ ერთი ასოთი სცდებოდა ხაზს და
+       ბოლო „ი“ მეორე რიგში გადადიოდა. ასოებს შორის დაშორებას და
+       ზომას ვუკლებთ, კიდეებს კი ვუმატებთ — სიტყვა თავისუფლად ეტევა. */
+    .card-content {
+        padding: 0 18px;
+    }
+
+    .card-content h3 {
+        font-size: 1.15rem;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+    }
+
     .info-grid-container {
         grid-template-columns: 1fr;
         gap: 40px;
