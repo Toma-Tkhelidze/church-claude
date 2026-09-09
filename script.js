@@ -1257,9 +1257,13 @@ window.unlockBodyScroll = function() {
         sync();
     };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', build);
-    } else {
+    // ზოლი გვერდის პირველივე დახატვაში უნდა იდგეს. DOMContentLoaded-ს
+    // რომ ველოდოთ, გადასვლის ანიმაცია ახალ გვერდს ზოლის გარეშე
+    // გადაიღებდა — ძველი ქრებოდა და ახალი მერე ჩნდებოდა. ეს ფაილი
+    // body-ის ბოლოშია ჩართული, ამიტომ მარკაპი უკვე გაპარსულია.
+    if (document.body) {
         build();
+    } else {
+        document.addEventListener('DOMContentLoaded', build);
     }
 })();
