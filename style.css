@@ -4369,26 +4369,37 @@ a.next-service .ns-where, .next-service a.ns-where {
         display: none !important;
     }
 
+    /* ზოლი ეკრანის კიდეს აღარ ეკვრის — ცურავს. სიმაღლე, კიდეებიდან
+       დაშორება და მათი ჯამი ერთხელ იწერება, რომ ფურცელმაც, ღილაკებმაც
+       და გვერდის ბოლოს ადგილმაც ერთი და იგივე რიცხვი იხმარონ. */
+    :root {
+        --tabbar-h: 62px;
+        --tabbar-inset: 10px;
+        --tabbar-space: calc(72px + env(safe-area-inset-bottom, 0px));
+    }
+
     /* ზოლი ფიქსირებულია, ამიტომ გვერდის ბოლოს იმდენივე ადგილს ვუტოვებთ */
     body {
-        padding-bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(var(--tabbar-space) + 6px) !important;
     }
 
     .mobile-tabbar {
         position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        left: var(--tabbar-inset);
+        right: var(--tabbar-inset);
+        bottom: calc(var(--tabbar-inset) + env(safe-area-inset-bottom, 0px));
         z-index: 1150;
         display: flex;
         align-items: stretch;
-        height: calc(58px + env(safe-area-inset-bottom, 0px));
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-        background: rgba(17, 17, 17, 0.98);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
-        border-top: 1px solid rgba(170, 149, 79, 0.22);
-        box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
+        height: var(--tabbar-h);
+        padding: 5px;
+        box-sizing: border-box;
+        background: rgba(20, 20, 20, 0.94);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
     }
 
     .mobile-tabbar__item {
@@ -4399,17 +4410,18 @@ a.next-service .ns-where, .next-service a.ns-where {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 4px;
         padding: 0 2px;
         margin: 0;
-        background: none;
+        background: transparent;
         border: 0;
+        border-radius: 999px;
         cursor: pointer;
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(255, 255, 255, 0.72);
         text-decoration: none !important;
         font-family: 'Noto Sans Georgian', 'NotoSansGeorgian', sans-serif !important;
         -webkit-tap-highlight-color: transparent;
-        transition: color 0.25s ease, transform 0.18s ease;
+        transition: color 0.25s ease, background 0.3s ease, transform 0.18s ease;
     }
 
     .mobile-tabbar__item i {
@@ -4431,30 +4443,10 @@ a.next-service .ns-where, .next-service a.ns-where {
         max-width: 100%;
     }
 
-    /* აქტიური ჩანართის ოქროსფერი ზოლი — ზოლის ზედა კიდეზე */
-    .mobile-tabbar__item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 50%;
-        width: 26px;
-        height: 2px;
-        border-radius: 0 0 2px 2px;
-        background: var(--gold);
-        transform: translateX(-50%) scaleX(0);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
+    /* მიმდინარე გვერდი საკუთარ ოქროსფერ კაფსულაში ზის */
     .mobile-tabbar__item.is-active {
         color: var(--gold);
-    }
-
-    .mobile-tabbar__item.is-active::before {
-        transform: translateX(-50%) scaleX(1);
-    }
-
-    .mobile-tabbar__item.is-active i {
-        transform: translateY(-1px);
+        background: rgba(170, 149, 79, 0.16);
     }
 
     .mobile-tabbar__item:active {
@@ -4482,19 +4474,19 @@ a.next-service .ns-where, .next-service a.ns-where {
         display: flex !important;
         position: fixed !important;
         top: auto !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: calc(58px + env(safe-area-inset-bottom, 0px)) !important;
-        width: 100% !important;
-        max-width: 100% !important;
+        left: var(--tabbar-inset) !important;
+        right: var(--tabbar-inset) !important;
+        bottom: calc(var(--tabbar-space) + 8px) !important;
+        width: auto !important;
+        max-width: none !important;
         height: auto !important;
-        max-height: min(70vh, 540px) !important;
-        padding: 26px 22px 24px !important;
-        border-radius: 18px 18px 0 0 !important;
-        border-top: 1px solid rgba(170, 149, 79, 0.28) !important;
-        box-shadow: 0 -18px 45px rgba(0, 0, 0, 0.55) !important;
+        max-height: min(68vh, 520px) !important;
+        padding: 26px 20px 22px !important;
+        border-radius: 22px !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.6) !important;
         z-index: 1140 !important;
-        transform: translateY(110%) !important;
+        transform: translateY(calc(100% + var(--tabbar-space))) !important;
         visibility: hidden;
         pointer-events: none;
         transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s !important;
@@ -4556,7 +4548,7 @@ a.next-service .ns-where, .next-service a.ns-where {
 
     /* მთავარი ბანერი მთელ ეკრანს იკავებს — ტექსტს ქვედა ზოლს ზემოთ ვწევთ */
     #sanity-main-image.hero-section {
-        padding-bottom: calc(34px + 58px + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(var(--tabbar-space) + 30px) !important;
     }
 
     html {
@@ -4565,11 +4557,11 @@ a.next-service .ns-where, .next-service a.ns-where {
 
     /* ქვედა ზოლს ვერაფერი უნდა გადაეფაროს */
     .back-to-top {
-        bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+        bottom: calc(var(--tabbar-space) + 12px) !important;
     }
 
     .install-bar {
-        bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(var(--tabbar-space) + 10px);
     }
 }
 
@@ -4577,18 +4569,27 @@ a.next-service .ns-where, .next-service a.ns-where {
 
     .mobile-tabbar__item,
     .mobile-tabbar__item i,
-    .mobile-tabbar__item::before,
     .nav-menu,
     .mobile-nav-scrim {
         transition: none !important;
     }
 }
 
-/* ვიწრო ტელეფონებზე (≤360px) ხუთი წარწერა ვეღარ ეტევა — ოდნავ ვამცირებთ */
+/* ვიწრო ტელეფონებზე (≤360px) ხუთი წარწერა ვეღარ ეტევა — კაფსულას
+   კიდეებს ვუკლებთ და ასოებს ვამცირებთ, რომ სახელები არ დაიჭრას */
 @media (max-width: 360px) {
+
+    :root {
+        --tabbar-inset: 8px;
+    }
+
+    .mobile-tabbar {
+        padding: 4px;
+    }
 
     .mobile-tabbar__item {
         gap: 4px;
+        padding: 0;
     }
 
     .mobile-tabbar__item i {
@@ -4596,7 +4597,7 @@ a.next-service .ns-where, .next-service a.ns-where {
     }
 
     .mobile-tabbar__item span {
-        font-size: 9px;
+        font-size: 8.7px;
         letter-spacing: 0;
     }
 }
