@@ -258,6 +258,462 @@
             margin: 0;
         }
 
+        /* ── ფორმატის ჩანართები: ვიდეო / აუდიო ──────────────────── */
+        .media-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto 30px;
+            flex-wrap: wrap;
+        }
+
+        .media-tab {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 11px 26px;
+            border: 1px solid #e6dcc0;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #7a6733;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.92rem;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease,
+                        border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .media-tab[hidden] { display: none; }
+
+        .media-tab i { font-size: 0.85em; }
+
+        .media-tab:hover {
+            border-color: #aa954f;
+            background: #fdf8ec;
+        }
+
+        .media-tab.is-active {
+            background: #aa954f;
+            border-color: #aa954f;
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(170, 149, 79, 0.22);
+        }
+
+        .media-panel[hidden] { display: none; }
+
+        /* ── აუდიო პლეერი ────────────────────────────────────────
+           ბარათი მუქია ღია სექციაზე — იგივე ხერხი, რითაც მთავარ
+           გვერდზე კვირის მუხლის ბარათი გამოირჩევა. */
+        .audio-player {
+            position: relative;
+            max-width: 640px;
+            margin: 0 auto 26px;
+            padding: 26px 24px 22px;
+            background:
+                linear-gradient(150deg, rgba(170, 149, 79, 0.14), transparent 58%),
+                var(--dark-900);
+            border: 1px solid rgba(170, 149, 79, 0.3);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 44px rgba(0, 0, 0, 0.25);
+        }
+
+        .audio-player::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: 26px;
+            right: 26px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #aa954f, transparent);
+            opacity: 0.6;
+        }
+
+        .audio-player-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .audio-cover {
+            flex: 0 0 58px;
+            width: 58px;
+            height: 58px;
+            border-radius: 13px;
+            background-color: #1a1a1a;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 0 0 1px rgba(170, 149, 79, 0.4);
+        }
+
+        .audio-now { min-width: 0; }
+
+        .audio-title {
+            margin: 0 0 4px;
+            color: #ffffff;
+            font-size: 1.02rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .audio-meta {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* პროგრესის ზოლი */
+        .audio-scrub { margin-top: 20px; }
+
+        .audio-bar {
+            position: relative;
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.14);
+            cursor: pointer;
+        }
+
+        .audio-bar:focus-visible {
+            outline: 2px solid #aa954f;
+            outline-offset: 4px;
+        }
+
+        .audio-bar-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 0;
+            background: #aa954f;
+            border-radius: 3px;
+        }
+
+        .audio-bar-dot {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 12px;
+            height: 12px;
+            margin: -6px 0 0 -6px;
+            border-radius: 50%;
+            background: #aa954f;
+            box-shadow: 0 0 0 4px rgba(170, 149, 79, 0.2);
+        }
+
+        .audio-times {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.74rem;
+            color: rgba(255, 255, 255, 0.45);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* მართვის ღილაკები */
+        .audio-transport {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .audio-skip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px;
+            border: 0;
+            background: none;
+            color: rgba(255, 255, 255, 0.72);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.25s ease;
+        }
+
+        .audio-skip i { font-size: 1.15rem; }
+        .audio-skip:hover { color: #ffffff; }
+
+        .audio-play {
+            width: 58px;
+            height: 58px;
+            border: 0;
+            border-radius: 50%;
+            background: #aa954f;
+            color: var(--dark-900);
+            font-size: 1.15rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.25s ease;
+        }
+
+        .audio-play:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 6px rgba(170, 149, 79, 0.15);
+        }
+
+        .audio-speed {
+            position: absolute;
+            right: 22px;
+            bottom: 20px;
+            padding: 6px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.8);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-variant-numeric: tabular-nums;
+            transition: color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .audio-speed:hover {
+            color: #aa954f;
+            border-color: rgba(170, 149, 79, 0.5);
+        }
+
+        /* ── ეპიზოდების სია — თეთრი ბარათები, ვიდეოს სიის მსგავსად ── */
+        .audio-list {
+            max-width: 960px;
+            margin: 0 auto;
+            display: grid;
+            gap: 10px;
+        }
+
+        .audio-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 16px;
+            border: 1px solid #f0e8d5;
+            border-radius: var(--radius-md);
+            background: #ffffff;
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .audio-item:hover {
+            transform: translateY(-2px);
+            border-color: #e0d1a4;
+            box-shadow: 0 12px 26px rgba(170, 149, 79, 0.12);
+        }
+
+        .audio-item-icon {
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(170, 149, 79, 0.4);
+            border-radius: 50%;
+            color: #aa954f;
+            font-size: 0.75rem;
+        }
+
+        .audio-item.is-current .audio-item-icon {
+            background: #aa954f;
+            border-color: #aa954f;
+            color: #ffffff;
+        }
+
+        .audio-item-body { flex: 1 1 auto; min-width: 0; }
+
+        .audio-item-title {
+            display: block;
+            color: #222;
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 2px;
+        }
+
+        .audio-item.is-current .audio-item-title { color: #7a6733; }
+
+        .audio-item-date {
+            font-size: 0.78rem;
+            color: #8b8b8b;
+        }
+
+        .audio-item-dur {
+            flex: 0 0 auto;
+            font-size: 0.8rem;
+            color: #8b8b8b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ბოლომდე მოსმენილი ეპიზოდი */
+        .audio-item.is-done .audio-item-done {
+            color: #aa954f;
+        }
+
+        .audio-empty {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            text-align: center;
+            color: #6c6c6c;
+            font-size: 0.95rem;
+        }
+
+        /* ── გარე პლატფორმები ───────────────────────────────────── */
+        .audio-elsewhere {
+            max-width: 960px;
+            margin: 26px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid #f0e8d5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+
+        .audio-elsewhere[hidden] { display: none; }
+
+        .audio-elsewhere span {
+            font-size: 0.82rem;
+            color: #8b8b8b;
+        }
+
+        .audio-elsewhere a {
+            font-size: 0.86rem;
+            color: #7a6733;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(170, 149, 79, 0.35);
+            padding-bottom: 1px;
+            transition: color 0.25s ease, border-color 0.25s ease;
+        }
+
+        .audio-elsewhere a[hidden] { display: none; }
+
+        .audio-elsewhere a:hover {
+            color: #aa954f;
+            border-color: #aa954f;
+        }
+
+        /* ── მცურავი მინი-პლეერი ────────────────────────────────── */
+        .audio-mini {
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: 12px;
+            z-index: 1150;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: rgba(26, 26, 26, 0.97);
+            border: 1px solid rgba(170, 149, 79, 0.32);
+            border-radius: 14px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+            transform: translateY(140%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .audio-mini[hidden] { display: none; }
+        .audio-mini.is-open { transform: translateY(0); }
+
+        @media (min-width: 640px) {
+            .audio-mini {
+                left: auto;
+                right: 24px;
+                bottom: 24px;
+                width: 360px;
+            }
+        }
+
+        .audio-mini-play {
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+            border: 0;
+            border-radius: 50%;
+            background: #aa954f;
+            color: var(--dark-900);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .audio-mini-body { flex: 1 1 auto; min-width: 0; }
+
+        .audio-mini-title {
+            display: block;
+            color: #ffffff;
+            font-size: 0.82rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .audio-mini-bar {
+            display: block;
+            height: 3px;
+            margin-top: 6px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        .audio-mini-bar i {
+            display: block;
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            background: #aa954f;
+        }
+
+        .audio-mini-close {
+            flex: 0 0 auto;
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 50%;
+            background: none;
+            color: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            transition: color 0.25s ease, background 0.25s ease;
+        }
+
+        .audio-mini-close:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* დესკტოპზე მინი-პლეერი მარჯვენა ქვედა კუთხეშია — სწორედ იქ,
+           სადაც „ზემოთ ასვლის“ ღილაკი დგას. ღილაკს ზემოთ ვწევთ. */
+        @media (min-width: 768px) {
+            body.has-mini-player .back-to-top { bottom: 96px; }
+        }
+
+        /* მობილურზე ეკრანის ბოლოში .mobile-tabbar დგას (58px).
+           მინი-პლეერი მის ზემოთ უნდა მოთავსდეს, ღილაკი კი — კიდევ ზემოთ. */
+        @media (max-width: 767px) {
+            .audio-mini {
+                bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+            }
+
+            body.has-mini-player .back-to-top {
+                bottom: calc(142px + env(safe-area-inset-bottom, 0px)) !important;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .audio-player { padding: 22px 18px 20px; }
+            .audio-transport { gap: 18px; }
+            .audio-play { width: 52px; height: 52px; }
+            .media-tab { padding: 10px 18px; font-size: 0.86rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .audio-mini { transition: none; }
+            .audio-play:hover { transform: none; }
+            .audio-item:hover { transform: none; }
+        }
+
         /* ── ყურების პროგრესი ───────────────────────────────────── */
         .watch-progress {
             position: absolute;
@@ -1182,23 +1638,114 @@
     <section class="weekly-sermons-section" id="weeklySermons" aria-label="ყოველკვირეული ქადაგებები">
         <div class="weekly-sermons-head">
             <h2>ყოველკვირეული ქადაგებები</h2>
-            <p>ყველა ქადაგება წლების მიხედვით. აირჩიე წელი და მოუსმინე პირდაპირ აქ.</p>
+            <p>ყველა ქადაგება ერთად — უყურე ვიდეოში ან მოუსმინე აუდიოში.</p>
         </div>
 
-        <div class="weekly-search">
-            <label class="visually-hidden" for="weeklySearch">მოძებნე ქადაგება სახელით</label>
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            <input type="search" id="weeklySearch" autocomplete="off"
-                placeholder="მოძებნე ქადაგება სახელით ან თარიღით…">
-            <button type="button" class="weekly-search-clear" id="weeklySearchClear" aria-label="ძებნის გასუფთავება" hidden>
-                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        <!-- ფორმატის ჩანართები. „აუდიო“ დამალულია, სანამ პოდკასტის
+             ლენტა არ დაემატება — ცარიელი ჩანართი მხოლოდ დააბნევდა. -->
+        <div class="media-tabs" role="tablist" aria-label="ქადაგების ფორმატი">
+            <button type="button" class="media-tab is-active" id="videoTab" role="tab"
+                    aria-selected="true" aria-controls="videoPanel" data-panel="video">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                <span>ვიდეო ქადაგება</span>
+            </button>
+            <button type="button" class="media-tab" id="audioTab" role="tab"
+                    aria-selected="false" aria-controls="audioPanel" data-panel="audio" hidden>
+                <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                <span>აუდიო ქადაგება</span>
             </button>
         </div>
 
-        <div class="year-tabs" role="tablist" aria-label="წლები"></div>
-        <p class="weekly-found" id="weeklyFound" hidden></p>
-        <div class="weekly-list"></div>
+        <!-- ── ვიდეო ── -->
+        <div class="media-panel" id="videoPanel" role="tabpanel" aria-labelledby="videoTab">
+            <div class="weekly-search">
+                <label class="visually-hidden" for="weeklySearch">მოძებნე ქადაგება სახელით</label>
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" id="weeklySearch" autocomplete="off"
+                    placeholder="მოძებნე ქადაგება სახელით ან თარიღით…">
+                <button type="button" class="weekly-search-clear" id="weeklySearchClear" aria-label="ძებნის გასუფთავება" hidden>
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="year-tabs" role="tablist" aria-label="წლები"></div>
+            <p class="weekly-found" id="weeklyFound" hidden></p>
+            <div class="weekly-list"></div>
+        </div>
+
+        <!-- ── აუდიო — შიგთავსს podcast.js ავსებს ── -->
+        <div class="media-panel" id="audioPanel" role="tabpanel" aria-labelledby="audioTab" hidden>
+
+            <div class="audio-player" id="audioPlayer">
+                <div class="audio-player-top">
+                    <span class="audio-cover" id="audioCover" aria-hidden="true"></span>
+                    <div class="audio-now">
+                        <p class="audio-title" id="audioTitle">—</p>
+                        <span class="audio-meta" id="audioMeta"></span>
+                    </div>
+                </div>
+
+                <div class="audio-scrub">
+                    <div class="audio-bar" id="audioBar" role="slider" tabindex="0"
+                         aria-label="დაკვრის ადგილი" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <span class="audio-bar-fill" id="audioFill"></span>
+                        <span class="audio-bar-dot" id="audioDot"></span>
+                    </div>
+                    <div class="audio-times">
+                        <span id="audioCur">0:00</span>
+                        <span id="audioLeft">0:00</span>
+                    </div>
+                </div>
+
+                <div class="audio-transport">
+                    <button type="button" class="audio-skip" data-skip="-15" aria-label="15 წამით უკან">
+                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span>15</span>
+                    </button>
+                    <button type="button" class="audio-play" id="audioPlayBtn" aria-label="დაკვრა">
+                        <i class="fa-solid fa-play" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="audio-skip" data-skip="15" aria-label="15 წამით წინ">
+                        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i><span>15</span>
+                    </button>
+                </div>
+
+                <button type="button" class="audio-speed" id="audioSpeed" aria-label="დაკვრის სიჩქარე">1×</button>
+            </div>
+
+            <div class="weekly-search">
+                <label class="visually-hidden" for="audioSearch">მოძებნე ეპიზოდი</label>
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="search" id="audioSearch" autocomplete="off"
+                    placeholder="მოძებნე ეპიზოდი სახელით ან თარიღით…">
+                <button type="button" class="weekly-search-clear" id="audioSearchClear" aria-label="ძებნის გასუფთავება" hidden>
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <p class="weekly-found" id="audioFound" hidden></p>
+            <div class="audio-list" id="audioList"></div>
+
+            <div class="audio-elsewhere" id="audioElsewhere" hidden>
+                <span>მოუსმინე სხვაგან:</span>
+                <a id="audioSpotify" href="#" target="_blank" rel="noopener noreferrer" hidden>Spotify</a>
+                <a id="audioApple" href="#" target="_blank" rel="noopener noreferrer" hidden>Apple Podcasts</a>
+            </div>
+        </div>
     </section>
+
+    <!-- მცურავი მინი-პლეერი — გვერდის ჩამოქაჩვისას რჩება ეკრანზე -->
+    <div class="audio-mini" id="audioMini" hidden>
+        <button type="button" class="audio-mini-play" id="audioMiniPlay" aria-label="დაკვრა">
+            <i class="fa-solid fa-play" aria-hidden="true"></i>
+        </button>
+        <div class="audio-mini-body">
+            <span class="audio-mini-title" id="audioMiniTitle"></span>
+            <span class="audio-mini-bar"><i id="audioMiniFill"></i></span>
+        </div>
+        <button type="button" class="audio-mini-close" id="audioMiniClose" aria-label="დახურვა">
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+    </div>
 
 <section class="contact-section" id="contact" aria-label="Contact and location">
     <div class="contact-container">
@@ -1377,6 +1924,7 @@
 
 <script src="../script.js"></script>
 <script src="../sanity-fetch.js"></script>
+<script src="../podcast.js"></script>
 <!-- YouTube-ის IFrame API — მისი გარეშე დაკვრის დრო არ იკითხება.
      onYouTubeIframeAPIReady sanity-fetch.js-შია, ამიტომ ის წინ უნდა იდგეს. -->
 <script src="https://www.youtube.com/iframe_api"></script>
