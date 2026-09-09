@@ -163,6 +163,22 @@
     padding: 0;
 }
 
+/* გვერდიდან გვერდზე გადასვლისას ბრაუზერი ერთ კადრს ცარიელ ფურცელს
+   ხატავდა — სწორედ ის „ციმციმი“. აქ ბრაუზერს ვთხოვთ, ძველი ეკრანი
+   ახალში რბილად გადაადნოს. ვისაც არ აქვს მხარდაჭერა, უბრალოდ
+   ვერაფერს შეამჩნევს. */
+@view-transition {
+    navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+}
+
 :root {
     --gold: #aa954f;
     --gold-light: #c9b26a;
@@ -4420,6 +4436,8 @@ a.next-service .ns-where, .next-service a.ns-where {
     }
 
     .mobile-tabbar {
+        /* გვერდის გადართვისას ზოლი ადგილზე რჩება და არ ციმციმებს */
+        view-transition-name: bottom-nav;
         position: fixed;
         left: var(--tabbar-inset);
         right: var(--tabbar-inset);
