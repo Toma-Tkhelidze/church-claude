@@ -534,6 +534,41 @@
             color: #ffffff;
         }
 
+        /* ეპიზოდის საკუთარი გარეკანი — თუ ლენტაში სურათია.
+           მის გარეშე მრგვალი ხატულა რჩება და სია არ ირღვევა. */
+        .audio-item-thumb {
+            position: relative;
+            flex: 0 0 52px;
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            background-color: #f3eedf;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 0.7rem;
+        }
+
+        /* ნახევრად გამჭვირვალე ფონი, რომ ისარი ნებისმიერ სურათზე ჩანდეს */
+        .audio-item-thumb i {
+            position: relative;
+            z-index: 1;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(17, 17, 17, 0.55);
+        }
+
+        .audio-item.is-current .audio-item-thumb i {
+            background: #aa954f;
+        }
+
         .audio-item-body { flex: 1 1 auto; min-width: 0; }
 
         .audio-item-title {

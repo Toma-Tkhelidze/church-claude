@@ -130,6 +130,9 @@ function normalise(data) {
       title: (item.title || '').trim(),
       url: audio,
       date: item.pubDate || '',
+      // ეპიზოდს შეიძლება თავისი გარეკანი ჰქონდეს, შეიძლება — არა.
+      // თუ არაა, შოუს საერთო გარეკანზე გადავდივართ.
+      image: item.thumbnail || '',
       duration: toSeconds(item.enclosure && item.enclosure.duration)
     };
   }).filter(ep => ep.url && ep.title);
@@ -231,8 +234,13 @@ let coverUrl = '';
       ? '<span class="audio-item-done"> · მოსმენილია</span>'
       : (started ? '<span class="audio-item-done"> · გაგრძელება ' + clock(state.t) + '</span>' : '');
 
+    const badge = ep.image
+      ? '<span class="audio-item-thumb" style="background-image:url(&quot;' + esc(ep.image) + '&quot;)">'
+          + '<i class="fa-solid fa-play" aria-hidden="true"></i></span>'
+      : '<span class="audio-item-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>';
+
     return '<button type="button" class="' + classes + '" data-id="' + esc(ep.id) + '">'
-      + '<span class="audio-item-icon"><i class="fa-solid fa-play" aria-hidden="true"></i></span>'
+      + badge
       + '<span class="audio-item-body">'
       + '<span class="audio-item-title">' + esc(ep.title) + '</span>'
       + '<span class="audio-item-date">' + esc(geoDate(ep.date)) + note + '</span>'
@@ -292,6 +300,9 @@ let coverUrl = '';
     el.meta.textContent = [geoDate(ep.date), ep.duration ? clock(ep.duration) : '']
       .filter(Boolean).join(' · ');
     el.miniTitle.textContent = ep.title;
+
+    const art = ep.image || coverUrl;
+    el.cover.style.backgroundImage = art ? 'url("' + art + '")' : '';
 
     // სად გაჩერდა — იმ ადგილიდან ვაგრძელებთ. currentTime-ს src-ის
     // მინიჭებისთანავე ვერ დავაყენებთ: ბრაუზერს ჯერ მეტამონაცემები
