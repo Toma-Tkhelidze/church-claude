@@ -32,6 +32,20 @@ const AUDIO_MAX_ENTRIES = 300;
 
 const SPEEDS = [1, 1.25, 1.5, 2];
 
+// სანამ ნამდვილი ლენტა არ დაემატება, ჩანართი ამ სანიმუშო ეპიზოდებით
+// მუშაობს — რომ დიზაინი ადგილზე ჩანდეს. PODCAST_FEED-ის შევსებისთანავე
+// მათ ნამდვილი ეპიზოდები ჩაანაცვლებს.
+const PREVIEW_EPISODES = [
+  { id: 'p1', title: 'ჩემი ეკლესია', url: '', date: '2026-08-30 11:00:00', duration: 2292 },
+  { id: 'p2', title: 'უკეთესობა ვაქციოთ ნორმად', url: '', date: '2026-08-23 11:00:00', duration: 2465 },
+  { id: 'p3', title: 'როგორი ეკლესიისთვის დაბრუნდება ქრისტე', url: '', date: '2026-08-16 11:00:00', duration: 2140 },
+  { id: 'p4', title: 'სამი რამ, რაც უფალს მოსწონს ჩვენში', url: '', date: '2026-08-09 11:00:00', duration: 2010 }
+];
+
+function previewMode() {
+  return !PODCAST_FEED;
+}
+
 // ── ლენტის ქეში ─────────────────────────────────────────────────
 function readFeedCache() {
   try {
@@ -272,7 +286,8 @@ let coverUrl = '';
   // ── დაკვრა ────────────────────────────────────────────────────
   function load(ep, autoplay) {
     current = ep;
-    sound.src = ep.url;
+    // სატესტო რეჟიმში ფაილი არ არსებობს — მხოლოდ დიზაინს ვაჩვენებთ.
+    if (ep.url) sound.src = ep.url;
     el.title.textContent = ep.title;
     el.meta.textContent = [geoDate(ep.date), ep.duration ? clock(ep.duration) : '']
       .filter(Boolean).join(' · ');
@@ -317,7 +332,7 @@ let coverUrl = '';
   }
 
   el.play.addEventListener('click', () => {
-    if (!current) return;
+    if (!current || !current.url) return;
     if (sound.paused) sound.play().catch(() => {});
     else sound.pause();
   });
@@ -448,12 +463,13 @@ let coverUrl = '';
   window.addEventListener('resize', updateMini, { passive: true });
 
   // ── გაშვება ───────────────────────────────────────────────────
-  if (!PODCAST_FEED) {
-    console.info('აუდიო ჩანართი გამორთულია: podcast.js-ში PODCAST_FEED ცარიელია.');
-    return;
+  if (previewMode()) {
+    console.info('აუდიო ჩანართი სანიმუშო ეპიზოდებზე მუშაობს — podcast.js-ში PODCAST_FEED ცარიელია.');
   }
 
-  fetchFeed().then(items => {
+  const source = PODCAST_FEED ? fetchFeed() : Promise.resolve(PREVIEW_EPISODES);
+
+  source.then(items => {
     if (!items.length) return;                    // ჩანართს არ ვაჩენთ
     episodes = items;
     shown = items.slice();
@@ -463,6 +479,16 @@ let coverUrl = '';
     if (PODCAST_LINKS.spotify) { el.spotify.href = PODCAST_LINKS.spotify; el.spotify.hidden = false; }
     if (PODCAST_LINKS.apple) { el.apple.href = PODCAST_LINKS.apple; el.apple.hidden = false; }
     el.elsewhere.hidden = !(PODCAST_LINKS.spotify || PODCAST_LINKS.apple);
+
+    if (previewMode()) {
+      // სატესტო რეჟიმი აშკარად უნდა ჩანდეს, რომ ნამდვილ სექციად არ ჩაითვალოს.
+      const note = document.createElement('p');
+      note.className = 'audio-preview-note';
+      note.textContent = 'სატესტო რეჟიმი — ეპიზოდები სანიმუშოა და ხმა არ აქვს. მხოლოდ დიზაინის სანახავად.';
+      panel.insertBefore(note, panel.firstElementChild);
+      // გარეკანის ადგილას ლოგო, რომ ბარათი სრულად გამოიყურებოდეს.
+      if (!coverUrl) el.cover.style.backgroundImage = 'url("../icons/icon-512.png")';
+    }
 
     tab.hidden = false;
     paintList();
