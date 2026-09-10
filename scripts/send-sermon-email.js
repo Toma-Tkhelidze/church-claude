@@ -18,7 +18,7 @@ const path = require('path');
 
 // ── კონფიგურაცია ──────────────────────────────────────────────────
 // დომენის შეცვლისას მხოლოდ SITE_BASE-ის შესწორება დაგჭირდება.
-const SITE_BASE = 'https://toma-tkhelidze.github.io/church-web/';
+const SITE_BASE = 'https://efckutaisi.ge/';
 const LIST_ID = 3;                       // „ეკლესიის სიახლეები“
 const SENDER = { name: 'სახარების რწმენის ეკლესია', email: 'txelidze.toma@gmail.com' };
 
