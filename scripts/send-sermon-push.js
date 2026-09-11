@@ -89,7 +89,7 @@ async function send(message) {
 
   try {
     const data = await send(message);
-    console.log('\nგაიგზავნა. შეტყობინების ID: ' + data.id + ', მიმღები: ' + (data.recipients ?? '?'));
+    console.log('\nგაიგზავნა. შეტყობინების ID: ' + data.id);
   } catch (err) {
     console.error('\nგაგზავნა ვერ მოხერხდა: ' + err.message);
     process.exitCode = 1;
