@@ -79,3 +79,19 @@ jobs:
             echo "SERMON_MAIL_ENABLED ჩართული არ არის — სატესტო რეჟიმი."
             node scripts/send-sermon-email.js --dry-run
           fi
+
+      # იგივე ტრიგერი, მეორე არხი: ვინც აპლიკაციაში შეტყობინებები ჩართო.
+      # ჩამრთველი ცალკეა (SERMON_PUSH_ENABLED), რომ ფოსტისგან
+      # დამოუკიდებლად ჩაირთოს და გამოირთოს.
+      - name: შეტყობინება აპლიკაციაში
+        if: steps.after.outputs.id != '' && (steps.before.outputs.id != steps.after.outputs.id || inputs.force_send)
+        env:
+          ONESIGNAL_APP_ID: ${{ vars.ONESIGNAL_APP_ID }}
+          ONESIGNAL_REST_API_KEY: ${{ secrets.ONESIGNAL_REST_API_KEY }}
+        run: |
+          if [ "${{ vars.SERMON_PUSH_ENABLED }}" = "true" ]; then
+            node scripts/send-sermon-push.js
+          else
+            echo "SERMON_PUSH_ENABLED ჩართული არ არის — სატესტო რეჟიმი."
+            node scripts/send-sermon-push.js --dry-run
+          fi

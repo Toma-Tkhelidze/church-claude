@@ -4360,10 +4360,59 @@ a.next-service .ns-where, .next-service a.ns-where {
 
 .footer-install:hover i { transform: translateY(-2px); }
 
+/* Push შეტყობინებების ღილაკი — ინსტალაციის ღილაკის ტყუპისცალი, ერთი
+   განსხვავებით: კომპიუტერზეც ჩანს. ინსტალაცია იქ არ არსებობს,
+   შეტყობინებები კი Chrome-სა და Edge-ში ჩვეულებრივ მუშაობს. */
+.footer-push {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 20px;
+    border: 1px solid rgba(170, 149, 79, 0.45);
+    border-radius: 999px;
+    background: rgba(170, 149, 79, 0.07);
+    color: var(--gold);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition),
+                border-color var(--transition), box-shadow var(--transition);
+}
+
+.footer-push[hidden] { display: none; }
+
+.footer-push:hover:not(.is-on) {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--dark-900);
+    box-shadow: 0 0 0 4px rgba(170, 149, 79, 0.14);
+}
+
+.footer-push i {
+    font-size: 1.05em;
+    transition: transform var(--transition);
+}
+
+.footer-push:hover:not(.is-on) i { transform: translateY(-2px); }
+
+/* ჩართულია — აღარ არის ღილაკი, არამედ მდგომარეობის ნიშანი. */
+.footer-push.is-on {
+    cursor: default;
+    border-style: dashed;
+    background: transparent;
+    opacity: 0.85;
+}
+
+.footer-push:disabled { opacity: 0.6; cursor: wait; }
+
 @media (prefers-reduced-motion: reduce) {
     .install-bar { transition: opacity 0.2s; transform: none; }
     .footer-install i,
-    .footer-install:hover i { transition: none; transform: none; }
+    .footer-install:hover i,
+    .footer-push i,
+    .footer-push:hover i { transition: none; transform: none; }
 }
 
 /* დესქტოპზე ზოლი ავტომატურად არ ჩნდება, მაგრამ ფუტერის ღილაკიდან

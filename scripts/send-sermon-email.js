@@ -17,37 +17,14 @@ const fs = require('fs');
 const path = require('path');
 
 // ── კონფიგურაცია ──────────────────────────────────────────────────
-// დომენის შეცვლისას მხოლოდ SITE_BASE-ის შესწორება დაგჭირდება.
-const SITE_BASE = 'https://efckutaisi.ge/';
+const { SITE_BASE, latestSermon, splitTitle } = require('./latest-sermon');
 const LIST_ID = 3;                       // „ეკლესიის სიახლეები“
-const SENDER = { name: 'სახარების რწმენის ეკლესია', email: 'txelidze.toma@gmail.com' };
+// გამომგზავნი Brevo-ში ავთენტიფიცირებული დომენიდანაა — სხვა მისამართს
+// Brevo @brevosend.com-ით ჩაანაცვლებდა.
+const SENDER = { name: 'სახარების რწმენის ეკლესია', email: 'info@efckutaisi.ge' };
 
-const ARCHIVE = path.join(__dirname, '..', 'data', 'sermon-archive.json');
 const TEMPLATE = path.join(__dirname, 'sermon-email.html');
 const API = 'https://api.brevo.com/v3';
-
-// ── არქივი ────────────────────────────────────────────────────────
-function latestSermon() {
-  const archive = JSON.parse(fs.readFileSync(ARCHIVE, 'utf8'));
-  // playlists[0] მიმდინარე წელია, სიაში კი ახალი ქადაგება პირველია.
-  const year = archive.playlists && archive.playlists[0] && archive.playlists[0].year;
-  const list = year && archive.years ? archive.years[year] : null;
-  if (!list || !list.length) return null;
-  return list[0];
-}
-
-// სათაურები ასე იწერება: „ჩემი ეკლესია | 30 აგვისტო, 2026“.
-// წერილში სათაური და თარიღი ცალ-ცალკე გვინდა.
-function splitTitle(raw, isoDate) {
-  const text = (raw || '').trim();
-  const i = text.lastIndexOf('|');
-  if (i > 0) {
-    const title = text.slice(0, i).trim();
-    const date = text.slice(i + 1).trim();
-    if (title && date) return { title, date };
-  }
-  return { title: text, date: isoDate || '' };
-}
 
 function buildHtml(sermon) {
   const parts = splitTitle(sermon.title, sermon.date);

@@ -1162,6 +1162,187 @@ window.unlockBodyScroll = function() {
 
 
 /* ==========================================================================
+   Push შეტყობინებები — OneSignal
+   --------------------------------------------------------------------------
+   ვინც ჩართავს, ახალ ქადაგებაზე შეტყობინებას მიიღებს (ორშაბათობით,
+   GitHub-ის სამუშაოდან) და ხანდახან ღონისძიებაზეც (OneSignal-ის პანელიდან
+   ხელით). ეს ფოსტისგან დამოუკიდებელი არხია — მისამართი არ სჭირდება,
+   იწერება მოწყობილობა.
+
+   ბრაუზერის ორი წესი, რომელიც აქ ყველაფერს განსაზღვრავს:
+   1. ნებართვას მხოლოდ დაჭერით ვთხოვთ. ავტომატურად მკითხავ საიტებს
+      Chrome აჩუმებს და მერე ნებართვის თხოვნაც აღარ ჩანს.
+   2. iPhone-ზე push მხოლოდ დაინსტალირებულ აპლიკაციაში მუშაობს —
+      ბრაუზერიდან PushManager არ არსებობს, ამიტომ იქ ღილაკიც არ ჩანს.
+   ========================================================================== */
+(function () {
+    const APP_ID = 'b657bdbe-ade7-4269-b8d0-63fcf7c4f698';
+    const KEY = 'efck-push';
+    const QUIET_DAYS = 60;
+    const DELAY_MS = 8000;
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+    // ნებართვა ერთხელ უკვე უარყოფილია — ბრაუზერი მეორედ არ იკითხავს,
+    // ღილაკი მხოლოდ იმედს გაუცრუებდა.
+    if (Notification.permission === 'denied') return;
+
+    const src = (document.currentScript && document.currentScript.src) || '';
+    if (!src) return;
+    const iconUrl = new URL('icons/icon-192.png', src).href;
+    const installed = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+
+    let state;
+    try {
+        state = JSON.parse(localStorage.getItem(KEY)) || {};
+    } catch (e) {
+        state = {};
+    }
+    function save() {
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+    }
+
+    // ── SDK ─────────────────────────────────────────────────────────
+    // ერთ ადგილას, ყველა გვერდისთვის — რომ 14 HTML-ში script-ტეგი არ
+    // გვეწეროს. სერვის-ვორკერი ჩვენივე sw.js-ია (იხ. importScripts იქ).
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    const ready = new Promise(resolve => {
+        window.OneSignalDeferred.push(async function (OneSignal) {
+            await OneSignal.init({
+                appId: APP_ID,
+                serviceWorkerPath: 'sw.js',
+                serviceWorkerParam: { scope: '/' },
+                // OneSignal-ის საკუთარი ზარი და ფანჯრები გამორთულია —
+                // ინტერფეისი ჩვენია, ქართულად.
+                notifyButton: { enable: false },
+                promptOptions: { slidedown: { prompts: [] } }
+            });
+            OneSignal.Notifications.addEventListener('permissionChange', refresh);
+            resolve(OneSignal);
+        });
+    });
+    const sdk = document.createElement('script');
+    sdk.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    sdk.defer = true;
+    document.head.appendChild(sdk);
+
+    let sdkReady = false;
+    ready.then(() => { sdkReady = true; refresh(); });
+
+    const granted = () => Notification.permission === 'granted';
+
+    // ნებართვის თხოვნა დაჭერის შიგნით უნდა მოხდეს — ამიტომ ღილაკები
+    // მხოლოდ მაშინ ჩნდება, როცა SDK უკვე ჩატვირთულია და await-ს
+    // დაჭერასა და კითხვას შორის დრო აღარ სჭირდება.
+    function subscribe() {
+        return ready.then(OneSignal => OneSignal.Notifications.requestPermission())
+            .catch(() => {})
+            .then(refresh);
+    }
+
+    // ── ფუტერის ღილაკი ──────────────────────────────────────────────
+    function mountFooterLink() {
+        const strip = document.querySelector('.footer-bottom');
+        if (!strip || strip.querySelector('.footer-push')) return;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'footer-push';
+        btn.hidden = true;
+        btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            btn.disabled = true;
+            subscribe().then(() => { btn.disabled = false; });
+        });
+        strip.insertBefore(btn, strip.querySelector('.footer-social'));
+        refresh();
+    }
+
+    function refresh() {
+        const btn = document.querySelector('.footer-push');
+        if (!btn) return;
+        if (!sdkReady || Notification.permission === 'denied') {
+            btn.hidden = true;
+            return;
+        }
+        if (granted()) {
+            btn.innerHTML = '<i class="fa-solid fa-bell" aria-hidden="true"></i>'
+                + '<span>შეტყობინებები ჩართულია</span>';
+            btn.classList.add('is-on');
+            btn.setAttribute('aria-disabled', 'true');
+        } else {
+            btn.innerHTML = '<i class="fa-regular fa-bell" aria-hidden="true"></i>'
+                + '<span>შეტყობინებების ჩართვა</span>';
+            btn.classList.remove('is-on');
+            btn.removeAttribute('aria-disabled');
+        }
+        btn.hidden = false;
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mountFooterLink);
+    } else {
+        mountFooterLink();
+    }
+
+    // ── ზოლი დაინსტალირებულ აპლიკაციაში ─────────────────────────────
+    // ერთადერთი მომენტი, როცა თავად ვთავაზობთ: ადამიანმა აპლიკაცია
+    // უკვე დაამატა, ანუ ინტერესი აქვს. ბრაუზერში არ ვაწუხებთ — იქ
+    // ინსტალაციის ზოლი ისედაც არის და მეორე ზოლი ბევრი იქნებოდა.
+    function openBar() {
+        if (granted() || document.querySelector('.install-bar')) return;
+
+        const bar = document.createElement('div');
+        bar.className = 'install-bar push-bar';
+        bar.setAttribute('role', 'dialog');
+        bar.setAttribute('aria-label', 'შეტყობინებების ჩართვა');
+        bar.innerHTML = `
+            <span class="install-icon" style="background-image:url('${iconUrl}')" aria-hidden="true"></span>
+            <div class="install-body">
+                <span class="install-eyebrow">შეტყობინებები</span>
+                <strong>გაიგე ახალი ქადაგების შესახებ</strong>
+                <span class="install-lead">ორშაბათობით ერთი შეტყობინება — მეტი არაფერი.</span>
+                <button type="button" class="install-go">
+                    <i class="fa-regular fa-bell" aria-hidden="true"></i>ჩართვა</button>
+            </div>
+            <button type="button" class="install-close" aria-label="დახურვა">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>`;
+
+        document.body.appendChild(bar);
+        const open = () => bar.classList.add('is-open');
+        requestAnimationFrame(open);
+        setTimeout(open, 50);
+
+        const close = () => {
+            bar.classList.remove('is-open');
+            setTimeout(() => bar.remove(), 300);
+        };
+        bar.querySelector('.install-close').addEventListener('click', () => {
+            state.dismissedAt = Date.now();
+            save();
+            close();
+        });
+        bar.querySelector('.install-go').addEventListener('click', () => {
+            close();
+            subscribe().then(() => {
+                // უარიც პასუხია — ავტომატურად აღარ შევაწუხებთ.
+                if (!granted()) {
+                    state.dismissedAt = Date.now();
+                    save();
+                }
+            });
+        });
+    }
+
+    const quiet = state.dismissedAt && Date.now() - state.dismissedAt < QUIET_DAYS * 864e5;
+    if (installed && !granted() && !quiet) {
+        ready.then(() => setTimeout(openBar, DELAY_MS));
+    }
+})();
+
+
+/* ==========================================================================
    MOBILE BOTTOM NAV — ტელეფონზე ჰედერის ნაცვლად ქვედა ხატულების ზოლი
    მარკაპი აქ იქმნება, რომ ყველა გვერდზე ერთი და იგივე იყოს.
    მენიუს ღილაკი იმავე ჰამბურგერს აჭერს, ამიტომ არსებული ლოგიკა

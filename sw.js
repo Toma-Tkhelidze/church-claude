@@ -12,7 +12,12 @@
  * ვეხებით: მათ საკუთარი კეშირება აქვთ და ჩარევა მხოლოდ დააზიანებდა.
  */
 
-const VERSION = 'v1';
+// Push შეტყობინებები (OneSignal): ეს სკრიპტი ვორკერს push-ისა და
+// შეტყობინებაზე დაჭერის დამუშავებას ამატებს. ქეშირებას ხელს არ უშლის —
+// ქვემოთ fetch-ის ლოგიკა სხვა დომენებს ისედაც არ ეხება.
+importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
+
+const VERSION = 'v2';
 const SHELL_CACHE = 'efck-shell-' + VERSION;
 const RUNTIME_CACHE = 'efck-runtime-' + VERSION;
 
