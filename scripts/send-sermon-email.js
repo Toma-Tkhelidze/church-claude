@@ -26,12 +26,32 @@ const SENDER = { name: 'სახარების რწმენის ეკ
 const TEMPLATE = path.join(__dirname, 'sermon-email.html');
 const API = 'https://api.brevo.com/v3';
 
-function buildHtml(sermon) {
+// HD ყდა (maxresdefault) ყველა ვიდეოს არ აქვს — მაშინ YouTube 404-ს
+// აბრუნებს. წერილში ცარიელი ან ნაცრისფერი სურათი არ უნდა წავიდეს, ამიტომ
+// წინასწარ ვამოწმებთ და საჭიროებისას hqdefault-ს ვიღებთ, რომელიც
+// ყოველთვის არსებობს.
+async function thumbnailUrl(videoId) {
+  const base = 'https://img.youtube.com/vi/' + encodeURIComponent(videoId) + '/';
+  try {
+    const res = await fetch(base + 'maxresdefault.jpg', { method: 'HEAD' });
+    if (res.ok) return base + 'maxresdefault.jpg';
+  } catch (e) { /* ქსელი — სარეზერვოზე გადავდივართ */ }
+  return base + 'hqdefault.jpg';
+}
+
+// HTML-ში ჩასმამდე სათაური უნდა გაიწმინდოს — „&“ ან „<“ შაბლონს არ უნდა შლიდეს.
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function buildHtml(sermon) {
   const parts = splitTitle(sermon.title, sermon.date);
   const values = {
-    TITLE: parts.title,
-    DATE: parts.date,
-    THUMB: 'https://img.youtube.com/vi/' + encodeURIComponent(sermon.id) + '/maxresdefault.jpg',
+    TITLE: escapeHtml(parts.title),
+    DATE: escapeHtml(parts.date),
+    THUMB: await thumbnailUrl(sermon.id),
     LINK: SITE_BASE + 'pages/sermons.html',
     YEAR: String(new Date().getFullYear())
   };
@@ -39,7 +59,7 @@ function buildHtml(sermon) {
   Object.keys(values).forEach(key => {
     html = html.split('{{' + key + '}}').join(values[key]);
   });
-  return { html: html, subject: 'ახალი ქადაგება: ' + parts.title, parts: parts };
+  return { html: html, subject: 'ახალი ქადაგება: ' + parts.title, parts: parts, thumb: values.THUMB };
 }
 
 // ── Brevo ─────────────────────────────────────────────────────────
@@ -58,8 +78,7 @@ async function brevo(method, endpoint, body) {
   return text ? JSON.parse(text) : {};
 }
 
-async function send(sermon) {
-  const mail = buildHtml(sermon);
+async function send(mail) {
   // კამპანია და არა transactional: სიაზე გაგზავნისას Brevo თავად
   // ამატებს გამოწერის გაუქმების ბმულს და პატივს სცემს უარის თქმას.
   const campaign = await brevo('POST', '/emailCampaigns', {
@@ -90,8 +109,9 @@ async function send(sermon) {
     return;
   }
 
-  const mail = buildHtml(sermon);
+  const mail = await buildHtml(sermon);
   console.log('ქადაგება: ' + mail.parts.title);
+  console.log('სურათი:   ' + mail.thumb);
   console.log('თარიღი:   ' + mail.parts.date);
   console.log('სათაური:  ' + mail.subject);
   console.log('სიგრძე:   ' + mail.html.length + ' სიმბოლო');
@@ -108,7 +128,7 @@ async function send(sermon) {
   }
 
   try {
-    const id = await send(sermon);
+    const id = await send(mail);
     console.log('\nგაიგზავნა. კამპანიის ნომერი: ' + id);
   } catch (err) {
     console.error('\nგაგზავნა ვერ მოხერხდა: ' + err.message);

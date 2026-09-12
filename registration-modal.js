@@ -11,9 +11,16 @@
 // ── ღონისძიებების კონფიგურაცია ────────────────────────────────────
 // fields — რომელი ველები გამოჩნდეს; action/entries — სად და რა სახელით
 // გაიგზავნოს. entries-ის გასაღებები ველების სახელებს ემთხვევა.
+// intro/success — სურვილისამებრ: ტექსტი სათაურის ქვეშ და წარმატების
+// შეტყობინება. ცარიელი თუ არის, საერთო ტექსტი იწერება.
+const CAMP_INTRO = 'გთხოვთ, ყურადღებით შეავსოთ მონაცემები საზაფხულო ბანაკზე ადგილის დასაჯავშნად.';
+const CAMP_SUCCESS = 'თქვენი ადგილი ბანაკზე დაჯავშნილია. მალე დაგიკავშირდებით დეტალებისთვის.';
+
 const REG_EVENTS = {
   'youth-camp': {
     fields: ['name', 'phone', 'email', 'health'],
+    intro: CAMP_INTRO,
+    success: CAMP_SUCCESS,
     action: 'https://docs.google.com/forms/d/e/1FAIpQLSdOF7yR7VAkNE8WfHtCEAZYo1CJ7ZfEv5Q6cnlmT5slwbOgtQ/formResponse',
     fixed: { 'entry.1880814093': 'ბანაკის რეგისტრაცია' },
     entries: {
@@ -25,6 +32,8 @@ const REG_EVENTS = {
   },
   'kids-camp': {
     fields: ['name', 'phone', 'age', 'health'],
+    intro: CAMP_INTRO,
+    success: CAMP_SUCCESS,
     action: 'https://docs.google.com/forms/d/e/1FAIpQLSdNgq0LK-c18wK8fQP7FGiwwodwMwVXwt8sUd1OlgjZy9AUTw/formResponse',
     entries: {
       name: 'entry.251486321',
@@ -67,7 +76,7 @@ const REG_FIELDS = {
     validate: v => /^\d{1,2}$/.test(v.trim()) && parseInt(v.trim(), 10) !== 0
   },
   health: {
-    label: 'განსაკუთრებული საჭიროებები (ალერგია ან კვებითი შეზღუდვა)',
+    label: 'განსაკუთრებული საჭიროებები (ალერგია, ქრონიკული დაავადება ან კვებითი შეზღუდვა)',
     type: 'textarea', placeholder: 'ასეთის არსებობის შემთხვევაში აღწერეთ...',
     validate: () => true
   }
@@ -97,6 +106,7 @@ function ensureRegistrationModal() {
       '<div class="modal-content-box">' +
         '<button class="modal-close-btn" id="closeModalBtn" aria-label="დახურვა"><i class="fa-solid fa-xmark"></i></button>' +
         '<h2 id="modalTitle">რეგისტრაცია</h2>' +
+        '<p class="reg-modal-intro" id="modalIntro" hidden></p>' +
         '<form id="dynamicRegisterForm" novalidate>' +
           '<div id="formFieldsContainer"></div>' +
           '<div class="form-submit-row" style="margin-top: 25px;">' +
@@ -106,7 +116,7 @@ function ensureRegistrationModal() {
         '<div class="success-toast" id="successToast">' +
           '<i class="fa-solid fa-circle-check"></i>' +
           '<h4>რეგისტრაცია წარმატებით შესრულდა!</h4>' +
-          '<p>თქვენი მონაცემები მიღებულია ბაზაში, მალე დაგიკავშირდებით.</p>' +
+          '<p id="successText">თქვენი მონაცემები მიღებულია ბაზაში, მალე დაგიკავშირდებით.</p>' +
         '</div>' +
       '</div>';
     document.body.appendChild(box);
@@ -140,9 +150,9 @@ function buildRegistrationFields(eventId) {
       ? '<textarea id="reg_' + key + '" rows="3" placeholder="' + regEscape(f.placeholder) + '"></textarea>'
       : '<input type="' + f.type + '" id="reg_' + key + '" placeholder="' + regEscape(f.placeholder) + '">';
     const error = f.error
-      ? '<div class="error-message" id="err_' + key + '">' + regEscape(f.error) + '</div>'
+      ? '<div class="error-message" id="err_' + key + '"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> ' + regEscape(f.error) + '</div>'
       : '';
-    return '<div class="form-group"><label>' + regEscape(f.label) + '</label>' + control + error + '</div>';
+    return '<div class="form-group"><label for="reg_' + key + '">' + regEscape(f.label) + '</label>' + control + error + '</div>';
   }).join('');
 }
 
@@ -215,6 +225,17 @@ function openRegistrationModal(eventId, title) {
 
   const heading = regModalEl.querySelector('#modalTitle');
   if (heading) heading.textContent = (title ? title + ' - ' : '') + 'რეგისტრაცია';
+
+  const config = REG_EVENTS[eventId];
+  const intro = regModalEl.querySelector('#modalIntro');
+  if (intro) {
+    intro.textContent = config.intro || '';
+    intro.hidden = !config.intro;
+  }
+  const successText = regModalEl.querySelector('#successText');
+  if (successText) {
+    successText.textContent = config.success || 'თქვენი მონაცემები მიღებულია ბაზაში, მალე დაგიკავშირდებით.';
+  }
 
   buildRegistrationFields(eventId);
 

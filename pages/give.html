@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Noto+Sans+Georgian:wght@100..900&family=Playfair+Display:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
     <link rel="icon" type="image/svg+xml" href="../pages/images/logo.svg">
     <link rel="manifest" href="../manifest.json">
@@ -86,8 +86,8 @@
         }
 
         .give-info-side { text-align: left; }
-        .give-info-side h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: #111; margin: 0 0 20px 0; }
-        .give-info-side p { font-family: 'Montserrat', sans-serif; font-size: 1.02rem; color: #555; line-height: 1.75; margin-bottom: 25px; }
+        .give-info-side h2 { font-family: 'Playfair Display', 'Noto Sans Georgian', serif; font-size: 2.5rem; color: #111; margin: 0 0 20px 0; }
+        .give-info-side p { font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 1.02rem; color: #555; line-height: 1.75; margin-bottom: 25px; }
 
         /* რეკვიზიტების ბარათი */
         .bank-details-card {
@@ -105,7 +105,7 @@
             background: #ffffff;
             border: 1px solid #00a3e0;
             color: #00a3e0;
-            font-family: 'Montserrat', sans-serif;
+            font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif;
             font-weight: 700;
             font-size: 0.8rem;
             padding: 6px 16px;
@@ -116,12 +116,12 @@
         }
 
         .copy-field-group { margin-bottom: 25px; text-align: left; }
-        .copy-field-group label { display: block; font-family: 'Montserrat', sans-serif; font-size: 0.78rem; font-weight: 600; color: #aa954f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .copy-field-group label { display: block; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.78rem; font-weight: 600; color: #aa954f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
         
         /* სელექტის სტილი */
         .purpose-select {
             width: 100%; padding: 12px; border: 1px solid #e1d8bf; border-radius: 6px;
-            font-family: 'Montserrat', sans-serif; font-size: 0.92rem; background: #ffffff;
+            font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.92rem; background: #ffffff;
             color: #222; outline: none; cursor: pointer; margin-bottom: 10px;
             transition: border-color 0.3s;
         }
@@ -129,9 +129,9 @@
 
         .copy-input-wrapper { display: flex; background: #ffffff; border: 1px solid #e1d8bf; border-radius: 6px; overflow: hidden; transition: border-color 0.3s; }
         .copy-input-wrapper:hover { border-color: #aa954f; }
-        .copy-value-text { flex-grow: 1; padding: 14px 16px; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; color: #222; font-weight: 500; background: transparent; border: none; outline: none; width: 100%; }
+        .copy-value-text { flex-grow: 1; padding: 14px 16px; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.95rem; color: #222; font-weight: 500; background: transparent; border: none; outline: none; width: 100%; }
         
-        .btn-copy-action { background: #f4eee1; border: none; border-left: 1px solid #e1d8bf; color: #aa954f; padding: 0 20px; cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+        .btn-copy-action { background: #f4eee1; border: none; border-left: 1px solid #e1d8bf; color: #aa954f; padding: 0 20px; cursor: pointer; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-weight: 600; font-size: 0.82rem; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
         .btn-copy-action:hover { background: #aa954f; color: #ffffff; }
 
 
@@ -140,7 +140,7 @@
         .copy-success-toast {
             position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
             background: #111; color: #fff; padding: 12px 24px; border-radius: 30px;
-            font-family: 'Montserrat', sans-serif; font-size: 0.88rem; font-weight: 500;
+            font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.88rem; font-weight: 500;
             display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999;
         }
@@ -399,7 +399,7 @@
                 </div>
                 <div class="contact-block-text">
                     <p class="contact-label">ელ-ფოსტა</p>
-                    <a href="mailto:info@efckutaisi.ge" style="text-decoration: none; color: #ffffff; font-weight: 500; font-family: 'Montserrat', sans-serif;">info@efckutaisi.ge</a>
+                    <a href="mailto:info@efckutaisi.ge" style="text-decoration: none; color: #ffffff; font-weight: 500; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif;">info@efckutaisi.ge</a>
                 </div>
             </div>
 

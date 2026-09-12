@@ -620,7 +620,10 @@ ul {
 .hero-section {
     height: 100vh;
     min-height: 600px;
-    background: #111111 url('https://cdn.sanity.io/images/f9j6xr69/production/80bb6d0e3f0c2949888b5b0c2e6c0a374dfae0cd-2730x1536.png') center/cover no-repeat;
+    /* Sanity-ს CDN-ს ზომა და ფორმატი პარამეტრებით ვთხოვთ — ორიგინალი PNG
+       6.7 MB-ია და ეს ფონი ყველა გვერდზე იტვირთება. იგივე პარამეტრებს
+       sanity-fetch.js-იც ამატებს, როცა სურათს Studio-დან ცვლის. */
+    background: #111111 url('https://cdn.sanity.io/images/f9j6xr69/production/80bb6d0e3f0c2949888b5b0c2e6c0a374dfae0cd-2730x1536.png?w=1920&fm=webp&q=80') center/cover no-repeat;
     position: relative;
     display: flex;
     align-items: center;
@@ -788,6 +791,16 @@ ul {
    ========================================================================== */
 
 /* 1. ფონტის იზოლირებული რეგისტრაცია სპეციალურად ამ ბანერისთვის */
+/* მთავრული სათაურებისთვის (sermons, about). ფაილი მხოლოდ ttf-ადაა —
+   29 KB, woff2-ად გადაყვანა არ ღირს. */
+@font-face {
+    font-family: 'BPGNinoMtavruliBold';
+    src: url('fonts/bpg_nino_mtavruli_bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
 @font-face {
     font-family: 'FiraGoBold';
     src: url('fonts/FiraGO-Bold.woff2') format('woff2');
@@ -948,7 +961,7 @@ ul {
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.75) !important;
     margin-top: 2px;
-    font-family: 'FiraGo-Bold', sans-serif !important;
+    font-family: 'FiraGoBold', sans-serif !important;
 }
 
 /* ==========================================================================
@@ -2709,7 +2722,7 @@ h2 {
     padding: 6px 12px;
     border-radius: 4px;
     font-size: 0.75rem;
-    font-family: 'FiraGoBold', 'Montserrat', sans-serif;
+    font-family: 'FiraGoBold', 'Montserrat', 'Noto Sans Georgian', sans-serif;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
@@ -4094,22 +4107,31 @@ a.next-service .ns-where, .next-service a.ns-where {
     margin: 0 0 25px 0;
 }
 
+/* ღონისძიების განმარტება სათაურის ქვეშ (REG_EVENTS[].intro) */
+.reg-modal-intro {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.5;
+    text-align: left;
+    margin: -12px 0 28px;
+}
+
 .form-group { margin-bottom: 20px; text-align: left; }
-.form-group label { display: block; font-family: 'Montserrat', sans-serif; font-size: 0.8rem; font-weight: 600; color: #aa954f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e1d8bf; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 0.92rem; box-sizing: border-box; background: #fdfbf7; }
+.form-group label { display: block; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.8rem; font-weight: 600; color: #aa954f; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e1d8bf; border-radius: 4px; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.92rem; box-sizing: border-box; background: #fdfbf7; }
 .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #aa954f; background: #ffffff; }
 
 .btn-modal-primary {
-    font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px;
+    font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px;
     padding: 16px 32px; background-color: #aa954f; color: #ffffff; border: none; border-radius: 50px; cursor: pointer;
     box-shadow: 0 10px 25px rgba(170, 149, 79, 0.25); display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; box-sizing: border-box; transition: all 0.3s ease;
 }
 .btn-modal-primary:hover { background-color: #8e7a3d; transform: translateY(-2px); box-shadow: 0 15px 30px rgba(170, 149, 79, 0.4); }
 
-.form-group.has-error input { border-color: #ea4335 !important; background-color: #fffaf9 !important; }
-.error-message { display: none; color: #ea4335; font-family: 'Montserrat', sans-serif; font-size: 0.78rem; font-weight: 600; margin-top: 6px; align-items: center; gap: 6px; }
+.form-group.has-error input, .form-group.has-error textarea { border-color: #ea4335 !important; background-color: #fffaf9 !important; }
+.error-message { display: none; color: #ea4335; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; font-size: 0.78rem; font-weight: 600; margin-top: 6px; align-items: center; gap: 6px; }
 
-.success-toast { display: none; background: #eef9f1; border: 1px solid #34a853; color: #1e4620; padding: 20px; border-radius: 8px; text-align: center; font-family: 'Montserrat', sans-serif; }
+.success-toast { display: none; background: #eef9f1; border: 1px solid #34a853; color: #1e4620; padding: 20px; border-radius: 8px; text-align: center; font-family: 'Montserrat', 'Noto Sans Georgian', sans-serif; }
 .success-toast i { color: #34a853; font-size: 1.8rem; margin-bottom: 8px; display: block; }
 
 /* ==========================================================================

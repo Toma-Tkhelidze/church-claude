@@ -203,6 +203,10 @@ let coverUrl = '';
   const sound = new Audio();
   sound.preload = 'none';                          // ჩატვირთვა მხოლოდ დაკვრისას
 
+  // script.js დიდი პაუზის შემდეგ გვერდს თავიდან ტვირთავს — მიმდინარე
+  // მოსმენა ამას არ უნდა შეეწიროს.
+  (window.efcBusyChecks = window.efcBusyChecks || []).push(() => !sound.paused);
+
   let episodes = [];
   let shown = [];
   let current = null;
@@ -299,6 +303,9 @@ let coverUrl = '';
     current = ep;
     // სატესტო რეჟიმში ფაილი არ არსებობს — მხოლოდ დიზაინს ვაჩვენებთ.
     if (ep.url) sound.src = ep.url;
+    // ახალი src ბრაუზერს სიჩქარეს 1×-ზე უბრუნებს — ღილაკზე კი არჩეული
+    // რჩება. ორივე ერთი და იგივე უნდა იყოს.
+    sound.playbackRate = SPEEDS[speedIdx];
     el.title.textContent = ep.title;
     el.meta.textContent = [geoDate(ep.date), ep.duration ? clock(ep.duration) : '']
       .filter(Boolean).join(' · ');

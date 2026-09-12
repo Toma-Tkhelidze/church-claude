@@ -193,6 +193,20 @@ function applyLatestSermonId(sermonId) {
   setSermonFacade(sermonId);
 }
 
+// Sanity-ს CDN ორიგინალ ფაილს აბრუნებს — ატვირთული PNG რამდენიმე
+// მეგაბაიტიც შეიძლება იყოს. პარამეტრებით ზომასა და webp-ს ვთხოვთ;
+// სხვა დომენის მისამართს (მაგ. Unsplash) ხელს არ ვახლებთ.
+function sanityImageUrl(url, width) {
+  if (!url || url.indexOf('cdn.sanity.io/images/') === -1) return url;
+  const sep = url.indexOf('?') === -1 ? '?' : '&';
+  return url + sep + 'w=' + width + '&fm=webp&q=80';
+}
+
+// ცარიელი CMS ველი „undefined“-ად არ უნდა დაიბეჭდოს.
+function textOr(value, fallback) {
+  return (value == null || value === '') ? (fallback || '') : String(value);
+}
+
 // CMS ტექსტი HTML-ში ჩასმამდე უნდა გაიწმინდოს.
 function escapeHtml(value) {
   return String(value == null ? '' : value)
@@ -212,7 +226,7 @@ function renderFamilyGroups(groups) {
   const data = {};
   const cards = groups.map((group, index) => {
     const id = String(index + 1);
-    const image = group.imageAssetUrl || group.imageUrl || '';
+    const image = sanityImageUrl(group.imageAssetUrl, 800) || group.imageUrl || '';
     data[id] = {
       title: group.title,
       leader: group.leader,
@@ -277,7 +291,7 @@ function renderOpenEvents(events) {
     // სურათის გარეშე ბარათი ერთსვეტიანი ხდება — თორემ ტექსტი ვიწრო სვეტში
     // იკუმშებოდა და გვერდით ცარიელი ადგილი რჩებოდა.
     const media = evt.imageUrl
-      ? `<span class="event-promo-media"><img src="${escapeHtml(evt.imageUrl)}" alt="" loading="lazy"></span>`
+      ? `<span class="event-promo-media"><img src="${escapeHtml(sanityImageUrl(evt.imageUrl, 800))}" alt="" loading="lazy"></span>`
       : '';
     const layoutClass = evt.imageUrl ? '' : ' is-textonly';
     const date = evt.dateText
@@ -347,7 +361,7 @@ function renderTeam(members) {
     setText('sanity-pastor-bio2', pastor.bio2);
 
     const photo = document.getElementById('sanity-pastor-photo');
-    const photoSrc = pastor.photoAssetUrl || pastor.photoUrl;
+    const photoSrc = sanityImageUrl(pastor.photoAssetUrl, 800) || pastor.photoUrl;
     if (photo && photoSrc) {
       photo.src = photoSrc;
       if (pastor.name) photo.alt = pastor.name;
@@ -585,7 +599,7 @@ function updatePageContent() {
           // Main Image (Background of Hero Section)
           if (siteContent.imageUrl) {
             const imgEl = document.getElementById('sanity-main-image');
-            if (imgEl) imgEl.style.backgroundImage = `url('${siteContent.imageUrl}')`;
+            if (imgEl) imgEl.style.backgroundImage = `url('${sanityImageUrl(siteContent.imageUrl, 1920)}')`;
           }
 
           // Building Section Texts
@@ -767,7 +781,7 @@ function updatePageContent() {
               // Update image
               const img = card.querySelector('.event-image-wrap img');
               if (img && evt.imageUrl) {
-                img.src = evt.imageUrl;
+                img.src = sanityImageUrl(evt.imageUrl, 800);
               }
 
               // Update title
@@ -778,10 +792,10 @@ function updatePageContent() {
               const metas = card.querySelectorAll('.event-meta');
               if (metas.length >= 2) {
                 if (evt.dateText) {
-                  metas[0].innerHTML = `<i class="fa-regular fa-calendar"></i> ${evt.dateText}`;
+                  metas[0].innerHTML = `<i class="fa-regular fa-calendar"></i> ${escapeHtml(evt.dateText)}`;
                 }
                 if (evt.detailsText) {
-                  metas[1].innerHTML = `<i class="fa-solid ${metaIconClass}"></i> ${evt.detailsText}`;
+                  metas[1].innerHTML = `<i class="fa-solid ${metaIconClass}"></i> ${escapeHtml(evt.detailsText)}`;
                 }
               }
 
@@ -811,7 +825,7 @@ function updatePageContent() {
           if (seriesGrid) {
             // Keep static cards that are NOT in Sanity (e.g. by title)
             const staticCards = Array.from(seriesGrid.querySelectorAll('.series-card'));
-            const sanityTitles = new Set(sermons.map(s => s.title.trim().toLowerCase()));
+            const sanityTitles = new Set(sermons.map(s => textOr(s.title).trim().toLowerCase()));
             
             const uniqueStaticCards = staticCards.filter(card => {
               const titleEl = card.querySelector('.series-info h3');
@@ -829,28 +843,32 @@ function updatePageContent() {
                 series.episodes.forEach((ep, index) => {
                   const epVideoId = getYouTubeId(ep.youtubeUrl);
                   const isPlayingClass = (index === 0) ? 'is-playing' : '';
+                  // ეპიზოდის სპიკერი თუ არ წერია, სერიისას ვიყენებთ.
+                  const epSpeaker = textOr(ep.speaker, textOr(series.speaker));
                   episodesHtml += `
-                    <div class="episode-item ${isPlayingClass}" data-video-id="${epVideoId || ''}">
+                    <div class="episode-item ${isPlayingClass}" data-video-id="${escapeHtml(epVideoId || '')}">
                         <div class="episode-title-block">
-                            <span class="episode-title"><i class="fa-solid fa-play"></i> ${ep.title}</span>
-                            <span class="episode-speaker">სპიკერი: ${ep.speaker}</span>
+                            <span class="episode-title"><i class="fa-solid fa-play"></i> ${escapeHtml(textOr(ep.title, 'ეპიზოდი ' + (index + 1)))}</span>
+                            ${epSpeaker ? `<span class="episode-speaker">სპიკერი: ${escapeHtml(epSpeaker)}</span>` : ''}
                         </div>
-                        ${ep.duration ? `<span class="episode-meta">${ep.duration}</span>` : ''}
+                        ${ep.duration ? `<span class="episode-meta">${escapeHtml(ep.duration)}</span>` : ''}
                     </div>
                   `;
                 });
               }
 
+              // ყველა CMS ველი escape-ით: სათაურში „&“ ან „<“ მარკაპს არ უნდა შლიდეს.
+              const seriesTitle = escapeHtml(textOr(series.title, 'უსათაურო სერია'));
               sermonsHtml += `
-                <div class="series-card" data-category="${series.category}">
+                <div class="series-card" data-category="${escapeHtml(textOr(series.category, 'biblical'))}">
                     <div class="series-thumbnail">
                         <div class="thumbnail-img-wrap">
-                            <img src="${series.thumbnailUrl || 'https://picsum.photos/600/400'}" alt="${series.title}" onerror="this.onerror=null; this.src='https://picsum.photos/600/400';">
+                            <img src="${escapeHtml(sanityImageUrl(series.thumbnailUrl, 600) || 'https://picsum.photos/600/400')}" alt="${seriesTitle}" loading="lazy" onerror="this.onerror=null; this.src='https://picsum.photos/600/400';">
                         </div>
                         <div class="series-meta-details">
                             <div class="meta-description-section">
                                 <span class="meta-label">სერიის შესახებ</span>
-                                <p class="meta-description-text">${series.description}</p>
+                                <p class="meta-description-text">${escapeHtml(textOr(series.description))}</p>
                             </div>
                             <div class="meta-tags-section">
                                 <div class="meta-tag">
@@ -862,7 +880,7 @@ function updatePageContent() {
                                 </div>
                                 <div class="meta-tag">
                                     <i class="fa-solid fa-user"></i>
-                                    <div>სპიკერი: ${series.speaker}</div>
+                                    <div>სპიკერი: ${escapeHtml(textOr(series.speaker, '—'))}</div>
                                 </div>
                             </div>
                         </div>
@@ -870,8 +888,8 @@ function updatePageContent() {
                     <div class="series-main">
                         <div class="series-header">
                             <div class="series-info">
-                                <h3>${series.title}</h3>
-                                <p>${series.subtitle}</p>
+                                <h3>${seriesTitle}</h3>
+                                <p>${escapeHtml(textOr(series.subtitle))}</p>
                             </div>
                             <div style="display: flex; align-items: center;">
                                 <span class="series-badge">${episodeCount} ეპიზოდი</span>
@@ -1479,6 +1497,12 @@ function renderResumeBar() {
 
 function initSermonWatch() {
   if (!sermonFrame()) return;
+
+  // script.js დიდი პაუზის შემდეგ გვერდს თავიდან ტვირთავს — მიმდინარე
+  // დაკვრა ამას არ უნდა შეეწიროს.
+  (window.efcBusyChecks = window.efcBusyChecks || []).push(() => {
+    try { return !!ytPlayer && ytPlayer.getPlayerState() === 1; } catch (e) { return false; }
+  });
 
   // საიტიდან გასვლისას ბოლო წამები რომ არ დაიკარგოს.
   window.addEventListener('pagehide', recordWatchNow);

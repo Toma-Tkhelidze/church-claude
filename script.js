@@ -925,8 +925,14 @@ window.unlockBodyScroll = function() {
 
     // ფორმის შევსების ან გახსნილი მოდალის დროს გადატვირთვა
     // ნაშრომს გააქრობდა — ასეთ დროს ხელს არ ვახლებთ.
+    // სხვა სკრიპტები (podcast.js, sanity-fetch.js) აქ საკუთარ შემოწმებას
+    // ამატებენ — მიმდინარე დაკვრა გადატვირთვას არ უნდა შეეწიროს.
+    window.efcBusyChecks = window.efcBusyChecks || [];
     const isBusy = () => {
-        if (document.querySelector('.reg-modal.modal-active')) return true;
+        if (document.querySelector('.modal-active, .creed-modal-overlay.open')) return true;
+        // დაჭერით გახსნილი ვიდეო (YouTube/Vimeo iframe ადგილმჭერში)
+        if (document.querySelector('.video-placeholder iframe, .main-video-placeholder iframe, .camp-video-placeholder iframe')) return true;
+        if (window.efcBusyChecks.some(check => { try { return !!check(); } catch (e) { return false; } })) return true;
         return [...document.querySelectorAll('input, textarea')].some(field => {
             if (field.type === 'hidden' || field.type === 'checkbox' || field.type === 'radio') return false;
             // წინასწარ ჩაწერილი მნიშვნელობა შევსება არ არის.
