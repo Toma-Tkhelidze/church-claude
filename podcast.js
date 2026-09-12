@@ -5,8 +5,12 @@
  * ვკითხულობთ, რითაც YouTube-ის ლენტას (sanity-fetch.js) — rss2json-ის
  * გავლით, რადგან პირდაპირ წაკითხვას CORS უშლის ხელს.
  *
- * სანამ PODCAST_FEED ცარიელია, „აუდიო ქადაგება“ ჩანართი საერთოდ არ
- * ჩნდება: ცარიელი ჩანართი ვიზიტორს მხოლოდ დააბნევდა.
+ * ლენტას ყოველ შესვლაზე ვკითხულობთ, რომ ახალი ეპიზოდი გამოქვეყნებისთანავე
+ * ჩანდეს. ბოლო ნაცნობი სია localStorage-შია — ის მაშინვე იხატება, ლენტის
+ * პასუხი კი უკვე ნახატ სიას ანახლებს. ასე არც ლოდინია და არც დაგვიანება.
+ *
+ * სანამ PODCAST_FEED ცარიელია, ჩანართი სანიმუშო ეპიზოდებით მუშაობს და
+ * „სატესტო რეჟიმის“ წარწერით ჩანს, რომ ნამდვილ სექციად არ ჩაითვალოს.
  */
 
 // ── შესავსები ───────────────────────────────────────────────────
@@ -22,7 +26,6 @@ const PODCAST_LINKS = {
 const FEED_PROXY = 'https://api.rss2json.com/v1/api.json?rss_url=';
 const FEED_TIMEOUT_MS = 8000;
 const FEED_CACHE_KEY = 'efc:podcast:v1';
-const FEED_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;   // ექვსი საათი
 
 // მოსმენის ადგილი — იმავე პრინციპით, რაც ვიდეოს პროგრესს აქვს.
 const AUDIO_KEY = 'efc:listen:v1';
@@ -47,17 +50,19 @@ function previewMode() {
 }
 
 // ── ლენტის ქეში ─────────────────────────────────────────────────
+// ქეში ვადას არ ითვლის: ის მხოლოდ პირველი ნახატისთვის და ლენტის
+// ჩავარდნისთვისაა. სიახლეს ყოველთვის ლენტა წყვეტს.
 function readFeedCache() {
   try {
     const raw = JSON.parse(localStorage.getItem(FEED_CACHE_KEY));
-    if (!raw || !Array.isArray(raw.items)) return null;
-    return { items: raw.items, fresh: Date.now() - (raw.at || 0) < FEED_CACHE_MAX_AGE };
+    if (!raw || !Array.isArray(raw.items) || !raw.items.length) return null;
+    return { items: raw.items, cover: raw.cover || '' };
   } catch (e) { return null; }
 }
 
-function writeFeedCache(items) {
+function writeFeedCache(items, cover) {
   try {
-    localStorage.setItem(FEED_CACHE_KEY, JSON.stringify({ items: items, at: Date.now() }));
+    localStorage.setItem(FEED_CACHE_KEY, JSON.stringify({ items: items, cover: cover || '', at: Date.now() }));
   } catch (e) { /* კვოტა ან private mode */ }
 }
 
@@ -140,8 +145,6 @@ function normalise(data) {
 
 function fetchFeed() {
   const cached = readFeedCache();
-  if (cached && cached.fresh) return Promise.resolve(cached.items);
-
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
   const timer = controller ? setTimeout(() => controller.abort(), FEED_TIMEOUT_MS) : null;
 
@@ -151,9 +154,9 @@ function fetchFeed() {
     .then(data => {
       const items = normalise(data);
       if (!items.length) return cached ? cached.items : [];
-      writeFeedCache(items);
       // გარეკანს ლენტიდან ვიღებთ, თუ იქ არის.
       if (data && data.feed && data.feed.image) coverUrl = data.feed.image;
+      writeFeedCache(items, coverUrl);
       return items;
     })
     // ჩავარდნისას ბოლო ნაცნობ სიას ვაჩვენებთ და არა ცარიელს.
@@ -478,34 +481,57 @@ let coverUrl = '';
     console.info('აუდიო ჩანართი სანიმუშო ეპიზოდებზე მუშაობს — podcast.js-ში PODCAST_FEED ცარიელია.');
   }
 
-  const source = PODCAST_FEED ? fetchFeed() : Promise.resolve(PREVIEW_EPISODES);
+  if (PODCAST_LINKS.spotify) { el.spotify.href = PODCAST_LINKS.spotify; el.spotify.hidden = false; }
+  if (PODCAST_LINKS.apple) { el.apple.href = PODCAST_LINKS.apple; el.apple.hidden = false; }
+  el.elsewhere.hidden = !(PODCAST_LINKS.spotify || PODCAST_LINKS.apple);
 
-  source.then(items => {
+  if (previewMode()) {
+    // სატესტო რეჟიმი აშკარად უნდა ჩანდეს, რომ ნამდვილ სექციად არ ჩაითვალოს.
+    const note = document.createElement('p');
+    note.className = 'audio-preview-note';
+    note.textContent = 'სატესტო რეჟიმი — ეპიზოდები სანიმუშოა და ხმა არ აქვს. მხოლოდ დიზაინის სანახავად.';
+    panel.insertBefore(note, panel.firstElementChild);
+    // გარეკანის ადგილას ლოგო, რომ ბარათი სრულად გამოიყურებოდეს.
+    coverUrl = '../icons/icon-512.png';
+  }
+
+  // სიას ორჯერ ვხატავთ: ჯერ ქეშიდან (მაშინვე), მერე ლენტიდან (როცა მოვა).
+  // მეორე ნახატი მიმდინარე დაკვრას არ წყვეტს — მხოლოდ სია და გარეკანი
+  // ახლდება, თუ რამე შეიცვალა.
+  function show(items) {
     if (!items.length) return;                    // ჩანართს არ ვაჩენთ
-    episodes = items;
-    shown = items.slice();
-
-    if (coverUrl) el.cover.style.backgroundImage = 'url("' + coverUrl + '")';
-
-    if (PODCAST_LINKS.spotify) { el.spotify.href = PODCAST_LINKS.spotify; el.spotify.hidden = false; }
-    if (PODCAST_LINKS.apple) { el.apple.href = PODCAST_LINKS.apple; el.apple.hidden = false; }
-    el.elsewhere.hidden = !(PODCAST_LINKS.spotify || PODCAST_LINKS.apple);
-
-    if (previewMode()) {
-      // სატესტო რეჟიმი აშკარად უნდა ჩანდეს, რომ ნამდვილ სექციად არ ჩაითვალოს.
-      const note = document.createElement('p');
-      note.className = 'audio-preview-note';
-      note.textContent = 'სატესტო რეჟიმი — ეპიზოდები სანიმუშოა და ხმა არ აქვს. მხოლოდ დიზაინის სანახავად.';
-      panel.insertBefore(note, panel.firstElementChild);
-      // გარეკანის ადგილას ლოგო, რომ ბარათი სრულად გამოიყურებოდეს.
-      if (!coverUrl) el.cover.style.backgroundImage = 'url("../icons/icon-512.png")';
+    if (coverUrl && !(current && current.image)) {
+      el.cover.style.backgroundImage = 'url("' + coverUrl + '")';
     }
 
+    const changed = items.length !== episodes.length
+      || items.some((ep, i) => String(ep.id) !== String(episodes[i].id));
+    if (episodes.length && !changed) return;
+
+    episodes = items;
+    filter(el.search.value);
+
     tab.hidden = false;
-    paintList();
-    // ბოლო ეპიზოდი მზადაა, მაგრამ თავისით არ ირთვება.
-    load(episodes[0], false);
-    paintProgress();
-    paintPlayState();
-  });
+    // ბოლო ეპიზოდი პლეერში მზადაა, მაგრამ თავისით არ ირთვება. თუ ლენტამ
+    // ახალი ეპიზოდი მოიტანა და ვიზიტორს ჯერ არაფერი ჩაურთავს, პლეერშიც
+    // ახალი ჩადგება — ძველი (ქეშიდან ჩატვირთული) არ დარჩება.
+    const idle = sound.paused && !sound.currentTime;
+    if (!current || (idle && current.id !== episodes[0].id)) {
+      load(episodes[0], false);
+      paintProgress();
+      paintPlayState();
+    }
+  }
+
+  if (!PODCAST_FEED) {
+    show(PREVIEW_EPISODES);
+    return;
+  }
+
+  const cached = readFeedCache();
+  if (cached) {
+    coverUrl = cached.cover;
+    show(cached.items);
+  }
+  fetchFeed().then(show);
 })();
