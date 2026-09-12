@@ -437,6 +437,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const activeVideoId = el.getAttribute('data-video-id') || videoId;
             const activePlatform = el.getAttribute('data-video-platform') || platform;
+            if (window.efcTrack) {
+                // მთავარი გვერდის „ბოლო ქადაგება“ ცალკე ითვლება, რომ
+                // ქადაგებების გვერდის მთვლელს შეუერთდეს.
+                const isSermon = el.id === 'sanity-latest-sermon';
+                efcTrack(isSermon ? 'sermon_play' : 'video_play', {
+                    video_id: activeVideoId,
+                    platform: activePlatform,
+                    placement: el.className.split(' ')[0]
+                });
+            }
 
             if (activePlatform === 'vimeo') {
                 iframe.setAttribute('src', `https://player.vimeo.com/video/${activeVideoId}?autoplay=1&badge=0&autopause=0&player_id=0&app_id=58479`);
@@ -790,6 +800,7 @@ window.unlockBodyScroll = function() {
             .then(() => {
                 form.style.display = 'none';
                 done.hidden = false;
+                if (window.efcTrack) efcTrack('prayer_request', { anonymous: anon.checked ? 'yes' : 'no' });
             })
             .catch(err => {
                 console.error('ლოცვითი საჭიროების გაგზავნა ვერ მოხერხდა:', err);
@@ -887,6 +898,7 @@ window.unlockBodyScroll = function() {
             .then(() => {
                 form.reset();
                 setSending(false);
+                if (window.efcTrack) efcTrack('newsletter_subscribe');
                 // Brevo-ში ორმაგი დადასტურებაა ჩართული: კონტაქტი სიაში
                 // მხოლოდ მას შემდეგ ჩადის, რაც წერილში ბმულს დააჭერს.
                 say('გმადლობთ! ელფოსტაზე მოგივათ წერილი — გამოწერის დასადასტურებლად დააჭირეთ მასში მოცემულ ბმულს.', true);
@@ -1034,6 +1046,7 @@ window.unlockBodyScroll = function() {
     // ── ზოლი ────────────────────────────────────────────────────────
     function openBar() {
         if (!deferred && !isIOS && !inApp) return;
+        // ქუქიების ზოლი ჯერ პასუხს ელოდება — ორი ზოლი ერთად ბევრია.
         if (document.querySelector('.install-bar')) return;
 
         const bar = document.createElement('div');
@@ -1108,6 +1121,9 @@ window.unlockBodyScroll = function() {
                 deferred.prompt();
                 deferred.userChoice
                     .then(res => {
+                        if (res && res.outcome === 'accepted' && window.efcTrack) {
+                            efcTrack('app_installed', { platform: 'android' });
+                        }
                         // უარიც პასუხია — ავტომატურად აღარ შევაწუხებთ.
                         if (res && res.outcome !== 'accepted') {
                             state.dismissedAt = Date.now();
@@ -1243,7 +1259,10 @@ window.unlockBodyScroll = function() {
     function subscribe() {
         return ready.then(OneSignal => OneSignal.Notifications.requestPermission())
             .catch(() => {})
-            .then(refresh);
+            .then(() => {
+                if (granted() && window.efcTrack) efcTrack('push_enabled');
+                refresh();
+            });
     }
 
     // ── ფუტერის ღილაკი ──────────────────────────────────────────────

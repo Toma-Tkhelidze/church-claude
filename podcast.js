@@ -322,7 +322,10 @@ let coverUrl = '';
 
     paintList();
     mediaSession(ep);
-    if (autoplay) sound.play().catch(() => { /* ავტომატური დაკვრა აიკრძალა */ });
+    if (autoplay) {
+      sound.play().catch(() => { /* ავტომატური დაკვრა აიკრძალა */ });
+      if (window.efcTrack) efcTrack('audio_play', { sermon_title: ep.title, resumed: pendingSeek ? 'yes' : 'no' });
+    }
   }
 
   // ლენტის ხანგრძლივობა სარეზერვოა: ბრაუზერისას ყოველთვის არ ვენდობით.
@@ -400,7 +403,10 @@ let coverUrl = '';
   });
   sound.addEventListener('play', paintPlayState);
   sound.addEventListener('pause', () => { save(); paintPlayState(); });
-  sound.addEventListener('ended', () => { save(); paintList(); paintPlayState(); });
+  sound.addEventListener('ended', () => {
+    save(); paintList(); paintPlayState();
+    if (current && window.efcTrack) efcTrack('audio_complete', { sermon_title: current.title });
+  });
 
   // პროგრესს პერიოდულადაც ვინახავთ — ჩანართის დახურვა pause-ს
   // ყოველთვის არ იწვევს.

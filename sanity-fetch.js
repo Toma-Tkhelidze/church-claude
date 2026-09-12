@@ -1325,6 +1325,7 @@ function onSermonStateChange(event) {
       let d = 0;
       try { d = ytPlayer.getDuration(); } catch (e) { /* ignore */ }
       if (id && d) saveWatchProgress(id, d, d, ytPendingTitle);
+      if (id && window.efcTrack) efcTrack('sermon_complete', { video_id: id, sermon_title: ytPendingTitle });
       refreshWatchUI();
       renderResumeBar();
     }
@@ -1388,6 +1389,13 @@ function playSermon(videoId, title) {
   const entry = watchEntry(videoId);
   const start = (entry && !entry.done && entry.t > WATCH_MIN_SECONDS) ? entry.t : 0;
   ytPendingTitle = title || (entry && entry.title) || '';
+  if (window.efcTrack) {
+    efcTrack('sermon_play', {
+      video_id: videoId,
+      sermon_title: ytPendingTitle,
+      resumed: start ? 'yes' : 'no'
+    });
+  }
 
   if (ytPlayer && ytPlayer.loadVideoById) {
     ytPlayer.loadVideoById({ videoId: videoId, startSeconds: start });

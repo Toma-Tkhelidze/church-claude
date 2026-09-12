@@ -29,6 +29,7 @@ const SHELL_FILES = [
   'index.html',
   'offline.html',
   'style.css',
+  'analytics.js',
   'script.js',
   'sanity-fetch.js',
   'registration-modal.js',

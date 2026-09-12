@@ -4385,7 +4385,8 @@ a.next-service .ns-where, .next-service a.ns-where {
 /* Push შეტყობინებების ღილაკი — ინსტალაციის ღილაკის ტყუპისცალი, ერთი
    განსხვავებით: კომპიუტერზეც ჩანს. ინსტალაცია იქ არ არსებობს,
    შეტყობინებები კი Chrome-სა და Edge-ში ჩვეულებრივ მუშაობს. */
-.footer-push {
+.footer-push,
+.footer-consent {
     display: inline-flex;
     align-items: center;
     gap: 9px;
@@ -4405,19 +4406,22 @@ a.next-service .ns-where, .next-service a.ns-where {
 
 .footer-push[hidden] { display: none; }
 
-.footer-push:hover:not(.is-on) {
+.footer-push:hover:not(.is-on),
+.footer-consent:hover {
     background: var(--gold);
     border-color: var(--gold);
     color: var(--dark-900);
     box-shadow: 0 0 0 4px rgba(170, 149, 79, 0.14);
 }
 
-.footer-push i {
+.footer-push i,
+.footer-consent i {
     font-size: 1.05em;
     transition: transform var(--transition);
 }
 
-.footer-push:hover:not(.is-on) i { transform: translateY(-2px); }
+.footer-push:hover:not(.is-on) i,
+.footer-consent:hover i { transform: translateY(-2px); }
 
 /* ჩართულია — აღარ არის ღილაკი, არამედ მდგომარეობის ნიშანი. */
 .footer-push.is-on {
@@ -4434,8 +4438,60 @@ a.next-service .ns-where, .next-service a.ns-where {
     .footer-install i,
     .footer-install:hover i,
     .footer-push i,
-    .footer-push:hover i { transition: none; transform: none; }
+    .footer-push:hover i,
+    .footer-consent i,
+    .footer-consent:hover i { transition: none; transform: none; }
 }
+
+/* ── ქუქიების თანხმობის ზოლი (analytics.js) ─────────────────────────
+   იმავე ბარათს იყენებს, რაც ინსტალაციის ზოლს — მხოლოდ ხატულა და
+   ორი ღილაკი განსხვავდება. ინსტალაციის ზოლზე მაღლა დგას, რომ
+   ერთდროულად გამოჩენისას პასუხი ჯერ ამან მიიღოს. */
+.consent-bar {
+    z-index: 1250;
+    align-items: flex-start;
+}
+
+.consent-icon {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(170, 149, 79, 0.12);
+    color: var(--gold);
+    font-size: 1.25rem;
+}
+
+.consent-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.consent-bar .install-go {
+    margin-top: 15px;
+}
+
+.consent-decline {
+    margin-top: 15px;
+    padding: 11px 6px;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color var(--transition);
+}
+
+.consent-decline:hover { color: #fff; }
 
 /* დესქტოპზე ზოლი ავტომატურად არ ჩნდება, მაგრამ ფუტერის ღილაკიდან
    იხსნება — მთელ სიგანეზე გაწელილი ბარათი იქ უადგილოა. */

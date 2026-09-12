@@ -540,6 +540,7 @@
     <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
 </button>
 
+<script src="../analytics.js"></script>
 <script src="../script.js"></script>
 <script src="../sanity-fetch.js"></script>
 
@@ -558,6 +559,8 @@
             const inputEl = document.getElementById(elementId);
             inputEl.select();
             inputEl.setSelectionRange(0, 99999);
+
+            if (window.efcTrack) efcTrack('bank_copy', { field: elementId.replace(/^bank/, '').toLowerCase() });
 
             const showToast = () => {
                 const toast = document.getElementById("copyToast");

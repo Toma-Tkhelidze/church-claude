@@ -197,6 +197,7 @@ function handleRegistrationSubmit(e) {
     .then(() => {
       form.style.display = 'none';
       if (toast) toast.style.display = 'block';
+      if (window.efcTrack) efcTrack('registration_submit', { event_id: regCurrentEvent });
       setTimeout(closeRegistrationModal, 2500);
     })
     .catch(err => {

@@ -1158,6 +1158,7 @@
     <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
 </button>
 
+<script src="../analytics.js"></script>
 <script src="../script.js"></script>
 <script src="../sanity-fetch.js"></script>
 
@@ -1290,6 +1291,7 @@
                 .then(() => {
                     registerFormBlock.style.display = "none";
                     successToast.style.display = "block";
+                    if (window.efcTrack) efcTrack('group_join', { group: mTitle.textContent });
 
                     setTimeout(() => {
                         modal.classList.remove("modal-active");
